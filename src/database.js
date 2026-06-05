@@ -31,4 +31,19 @@ try {
   // Coluna já existe, ignora
 }
 
+// Tabela de histórico de análises
+db.exec(`
+  CREATE TABLE IF NOT EXISTS history (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    type TEXT DEFAULT 'error',
+    input_error TEXT,
+    input_code TEXT,
+    input_context TEXT,
+    response TEXT,
+    created_at TEXT DEFAULT (datetime('now')),
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  )
+`);
+
 module.exports = db;

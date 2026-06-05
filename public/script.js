@@ -75,6 +75,9 @@ function showLoggedInState() {
       reviewTab.setAttribute("onclick", "showUpgradeMessage()");
     }
   }
+
+  // Carrega histórico
+  loadHistory();
 }
 
 function showUpgradeMessage() {
@@ -214,6 +217,7 @@ async function analyzeError() {
       document.getElementById("error-result").style.display = "block";
       analysisCount++;
       document.getElementById("analysis-count").textContent = analysisCount;
+      loadHistory();
     }
   } catch (err) {
     alert("Erro ao conectar com a API.");
@@ -268,6 +272,7 @@ async function reviewCode() {
       document.getElementById("review-result").style.display = "block";
       analysisCount++;
       document.getElementById("analysis-count").textContent = analysisCount;
+      loadHistory();
     }
   } catch (err) {
     alert("Erro ao conectar com a API.");
@@ -350,3 +355,99 @@ async function subscribePlan(plan) {
     window.history.replaceState({}, "", "/");
   }
 })();
+
+// === Histórico ===
+async function loadHistory() {
+  const token = localStorage.getItem("debugai_token");
+  if (!token) return;
+
+  try {
+    const res = await fetch("/api/history", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+    const section = document.getElementById("history-section");
+    const list = document.getElementById("history-list");
+
+    if (data.history.length === 0) {
+      section.style.display = "block";
+      list.innerHTML = '<p class="history-empty">Nenhuma análise ainda. Use o debugAI e seu histórico aparecerá aqui.</p>';
+      return;
+    }
+
+    section.style.display = "block";
+    list.innerHTML = data.history.map((item, index) => `
+      <div class="history-item">
+        <div class="history-item-header">
+          <span class="history-item-type ${item.type}">${item.type === "review" ? "revisão" : "erro"}</span>
+          <span class="history-item-date">${formatDate(item.created_at)}</span>
+        </div>
+        <div class="history-item-input">${escapeHtml(item.input_error)}</div>
+        <div class="history-item-actions">
+          <button onclick="toggleResponse(${index})">👁 ver resposta</button>
+          <button onclick="copyHistoryResponse(${index})">📋 copiar</button>
+          <button onclick="deleteHistoryItem(${item.id})">🗑 remover</button>
+        </div>
+        <div class="history-item-response" id="history-response-${index}">${escapeHtml(item.response)}</div>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("Erro ao carregar histórico:", err);
+  }
+}
+
+function toggleResponse(index) {
+  const el = document.getElementById(`history-response-${index}`);
+  el.style.display = el.style.display === "none" || !el.style.display ? "block" : "none";
+}
+
+function copyHistoryResponse(index) {
+  const el = document.getElementById(`history-response-${index}`);
+  navigator.clipboard.writeText(el.textContent).then(() => alert("Copiado!"));
+}
+
+async function deleteHistoryItem(id) {
+  const token = localStorage.getItem("debugai_token");
+  try {
+    await fetch(`/api/history/${id}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    loadHistory();
+  } catch (err) {
+    console.error("Erro ao remover:", err);
+  }
+}
+
+async function clearAllHistory() {
+  if (!confirm("Tem certeza que quer limpar todo o histórico?")) return;
+  const token = localStorage.getItem("debugai_token");
+  try {
+    const res = await fetch("/api/history", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const data = await res.json();
+    for (const item of data.history) {
+      await fetch(`/api/history/${item.id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+    loadHistory();
+  } catch (err) {
+    console.error("Erro ao limpar histórico:", err);
+  }
+}
+
+function formatDate(dateStr) {
+  const date = new Date(dateStr + "Z");
+  return date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+}
+
+function escapeHtml(text) {
+  if (!text) return "";
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}

@@ -71,6 +71,11 @@ app.post("/api/debug", authMiddleware, async (req, res) => {
     // Incrementa contador de análises
     db.prepare("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = ?").run(user.id);
 
+    // Salva no histórico
+    const type = isCodeReview ? "review" : "error";
+    db.prepare("INSERT INTO history (user_id, type, input_error, input_code, input_context, response) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(req.user.id, type, erro, codigo || null, contexto || null, resultado);
+
     res.json({ resultado });
   } catch (err) {
     console.error("Erro na IA:", err.message || err);
@@ -85,6 +90,25 @@ app.get("/api/plan", authMiddleware, (req, res) => {
     return res.status(404).json({ error: "Usuário não encontrado." });
   }
   res.json(getPlanInfo(user));
+});
+
+// Rota para pegar histórico do usuário
+app.get("/api/history", authMiddleware, (req, res) => {
+  const history = db.prepare(
+    "SELECT id, type, input_error, input_code, input_context, response, created_at FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50"
+  ).all(req.user.id);
+
+  res.json({ history });
+});
+
+// Rota para deletar item do histórico
+app.delete("/api/history/:id", authMiddleware, (req, res) => {
+  const item = db.prepare("SELECT * FROM history WHERE id = ? AND user_id = ?").get(req.params.id, req.user.id);
+  if (!item) {
+    return res.status(404).json({ error: "Item não encontrado." });
+  }
+  db.prepare("DELETE FROM history WHERE id = ?").run(req.params.id);
+  res.json({ message: "Removido do histórico." });
 });
 
 const PORT = process.env.PORT || 3000;
