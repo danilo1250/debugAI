@@ -73,8 +73,8 @@ app.post("/api/debug", authMiddleware, async (req, res) => {
 
     res.json({ resultado });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erro ao chamar a IA." });
+    console.error("Erro na IA:", err.message || err);
+    res.status(500).json({ error: "Erro ao chamar a IA: " + (err.message || "erro desconhecido") });
   }
 });
 
