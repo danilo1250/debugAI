@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>debugAI — Dashboard do Time</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .dashboard-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    .dashboard-header {
+      margin-bottom: 2.5rem;
+    }
+
+    .dashboard-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.3rem;
+    }
+
+    .dashboard-header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    .dashboard-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem;
+    }
+
+    .dashboard-section.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .section-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title .icon {
+      font-size: 1.2rem;
+    }
+
+    /* API Key Section */
+    .api-key-display {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .api-key-display code {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 0.9rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .api-key-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .btn-sm {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 0.5rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-sm:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .btn-sm.danger:hover {
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    .btn-generate {
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      padding: 0.55rem 1.2rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .btn-generate:hover {
+      background: var(--accent-light);
+    }
+
+    .api-keys-list {
+      margin-top: 1rem;
+    }
+
+    .api-key-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .api-key-item:last-child {
+      border-bottom: none;
+    }
+
+    .api-key-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+
+    .api-key-name {
+      font-size: 0.84rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .api-key-meta {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Team Members */
+    .invite-form {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .invite-form input {
+      flex: 1;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 0.9rem;
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+
+    .invite-form input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .invite-form input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .member-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .member-item:last-child {
+      border-bottom: none;
+    }
+
+    .member-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.15rem;
+    }
+
+    .member-name {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .member-email {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .members-count {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.8rem;
+    }
+
+    /* Support Tickets */
+    .ticket-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .ticket-form input,
+    .ticket-form textarea {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 0.9rem;
+      color: var(--text-primary);
+      font-size: 0.85rem;
+      font-family: inherit;
+    }
+
+    .ticket-form textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    .ticket-form input:focus,
+    .ticket-form textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .ticket-form input::placeholder,
+    .ticket-form textarea::placeholder {
+      color: var(--text-muted);
+    }
+
+    .ticket-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .ticket-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .ticket-subject {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .ticket-badges {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .badge-status {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+
+    .badge-status.aberto {
+      background: rgba(96, 165, 250, 0.1);
+      color: var(--info);
+    }
+
+    .badge-status.resolvido {
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--success);
+    }
+
+    .badge-priority {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      background: rgba(212, 165, 116, 0.15);
+      color: var(--accent);
+    }
+
+    .ticket-message {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.3rem;
+      line-height: 1.5;
+    }
+
+    .ticket-date {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    /* Reports */
+    .reports-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .report-stat {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .report-stat .value {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .report-stat .label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.2rem;
+    }
+
+    .report-list h4 {
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.6rem;
+      font-weight: 500;
+    }
+
+    .report-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+    }
+
+    .report-item:last-child {
+      border-bottom: none;
+    }
+
+    .report-item .error-text {
+      color: var(--text-secondary);
+      max-width: 70%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .report-item .error-count {
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    .weekly-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.5rem;
+      height: 100px;
+      margin-top: 1rem;
+      padding: 0.5rem 0;
+    }
+
+    .chart-bar-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: 100%;
+    }
+
+    .chart-bar {
+      width: 100%;
+      max-width: 40px;
+      background: var(--accent);
+      border-radius: 4px 4px 0 0;
+      margin-top: auto;
+      min-height: 4px;
+      transition: height 0.3s;
+    }
+
+    .chart-label {
+      font-size: 0.6rem;
+      color: var(--text-muted);
+      margin-top: 0.4rem;
+      text-transform: uppercase;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 1.5rem;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .reports-stats {
+        grid-template-columns: 1fr;
+      }
+
+      .invite-form {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-logo">
+      <a href="/" style="color: var(--accent);"><span class="logo">debugAI</span></a>
+    </div>
+    <nav>
+      <a href="/">home</a>
+      <a href="/dashboard.html" style="color: var(--accent);">dashboard</a>
+    </nav>
+    <div class="header-actions" id="header-actions">
+      <span id="user-greeting" style="color: var(--text-secondary); font-size: 0.84rem;"></span>
+      <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
+    </div>
+  </header>
+
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <h1>🚀 Dashboard do Time</h1>
+      <p>Gerencie sua API, time, suporte e relatórios.</p>
+    </div>
+
+    <div class="dashboard-grid">
+      <!-- API Keys -->
+      <div class="dashboard-section">
+        <h3 class="section-title"><span class="icon">🔑</span> API Própria</h3>
+        <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">Use sua chave para integrar o debugAI na sua pipeline.</p>
+        <button class="btn-generate" onclick="generateApiKey()">+ gerar nova chave</button>
+        <div class="api-keys-list" id="api-keys-list">
+          <p class="empty-state">Carregando...</p>
+        </div>
+      </div>
+
+      <!-- Team Members -->
+      <div class="dashboard-section">
+        <h3 class="section-title"><span class="icon">👥</span> Membros do Time</h3>
+        <p class="members-count" id="members-count">0/10 membros</p>
+        <div class="invite-form">
+          <input type="email" id="invite-email" placeholder="email@membro.com" />
+          <button class="btn-generate" onclick="inviteMember()">convidar</button>
+        </div>
+        <div id="members-list">
+          <p class="empty-state">Carregando...</p>
+        </div>
+      </div>
+
+      <!-- Support Tickets -->
+      <div class="dashboard-section">
+        <h3 class="section-title"><span class="icon">🎧</span> Suporte Prioritário</h3>
+        <div class="ticket-form">
+          <input type="text" id="ticket-subject" placeholder="Assunto do ticket" />
+          <textarea id="ticket-message" placeholder="Descreva seu problema ou dúvida..."></textarea>
+          <button class="btn-generate" onclick="createTicket()">enviar ticket</button>
+        </div>
+        <div id="tickets-list">
+          <p class="empty-state">Carregando...</p>
+        </div>
+      </div>
+
+      <!-- Reports -->
+      <div class="dashboard-section">
+        <h3 class="section-title"><span class="icon">📊</span> Relatórios</h3>
+        <div id="reports-content">
+          <p class="empty-state">Carregando...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">debugAI</div>
+    <p>© 2025 debugAI — feito por devs, pra devs</p>
+  </footer>
+
+  <script>
+    const token = localStorage.getItem("debugai_token");
+
+    if (!token) {
+      window.location.href = "/";
+    }
+
+    // Init
+    window.addEventListener("DOMContentLoaded", async () => {
+      await checkAccess();
+      loadApiKeys();
+      loadMembers();
+      loadTickets();
+      loadReports();
+    });
+
+    async function checkAccess() {
+      try {
+        const res = await fetch("/api/auth/me", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {
+          localStorage.removeItem("debugai_token");
+          window.location.href = "/";
+          return;
+        }
+        const data = await res.json();
+        if (data.user.plan !== "team") {
+          alert("Dashboard disponível apenas para o plano Team.");
+          window.location.href = "/";
+          return;
+        }
+        document.getElementById("user-greeting").innerHTML = `olá, <strong style="color: var(--accent);">${data.user.name}</strong>`;
+      } catch (err) {
+        window.location.href = "/";
+      }
+    }
+
+    // === API Keys ===
+    async function loadApiKeys() {
+      try {
+        const res = await fetch("/api/apikeys", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const container = document.getElementById("api-keys-list");
+
+        if (!data.keys || data.keys.length === 0) {
+          container.innerHTML = '<p class="empty-state">Nenhuma chave gerada ainda.</p>';
+          return;
+        }
+
+        container.innerHTML = data.keys.map(key => `
+          <div class="api-key-item">
+            <div class="api-key-info">
+              <span class="api-key-name">${escapeHtml(key.name)}</span>
+              <span class="api-key-meta">Criada em ${formatDate(key.created_at)} ${key.last_used_at ? '• Último uso: ' + formatDate(key.last_used_at) : ''}</span>
+              <code style="font-size:0.7rem;color:var(--text-muted);margin-top:0.2rem;">${key.key.substring(0, 12)}...${key.key.substring(key.key.length - 6)}</code>
+            </div>
+            <div class="api-key-actions">
+              <button class="btn-sm" onclick="copyKey('${key.key}')">📋</button>
+              <button class="btn-sm danger" onclick="revokeKey(${key.id})">🗑</button>
+            </div>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Erro ao carregar chaves:", err);
+      }
+    }
+
+    async function generateApiKey() {
+      const name = prompt("Nome da chave (ex: CI/CD, Produção):");
+      if (!name) return;
+
+      try {
+        const res = await fetch("/api/apikeys", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ name }),
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error);
+
+        alert(`Chave gerada! Copie agora, ela não será mostrada novamente:\n\n${data.key}`);
+        loadApiKeys();
+      } catch (err) {
+        alert("Erro ao gerar chave.");
+      }
+    }
+
+    function copyKey(key) {
+      navigator.clipboard.writeText(key).then(() => alert("Chave copiada!"));
+    }
+
+    async function revokeKey(id) {
+      if (!confirm("Revogar esta chave? Ela deixará de funcionar imediatamente.")) return;
+      try {
+        await fetch(`/api/apikeys/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        loadApiKeys();
+      } catch (err) {
+        alert("Erro ao revogar chave.");
+      }
+    }
+
+    // === Team Members ===
+    async function loadMembers() {
+      try {
+        const res = await fetch("/api/team/members", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const container = document.getElementById("members-list");
+        const count = document.getElementById("members-count");
+
+        const members = data.members || [];
+        count.textContent = `${members.length}/10 membros`;
+
+        if (members.length === 0) {
+          container.innerHTML = '<p class="empty-state">Nenhum membro no time ainda. Convide por e-mail.</p>';
+          return;
+        }
+
+        container.innerHTML = members.map(m => `
+          <div class="member-item">
+            <div class="member-info">
+              <span class="member-name">${escapeHtml(m.name)}</span>
+              <span class="member-email">${escapeHtml(m.email)}</span>
+            </div>
+            <button class="btn-sm danger" onclick="removeMember(${m.id})">remover</button>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Erro ao carregar membros:", err);
+      }
+    }
+
+    async function inviteMember() {
+      const email = document.getElementById("invite-email").value.trim();
+      if (!email) return alert("Digite o e-mail do membro.");
+
+      try {
+        const res = await fetch("/api/team/invite", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ email }),
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error);
+
+        alert(data.message);
+        document.getElementById("invite-email").value = "";
+        loadMembers();
+      } catch (err) {
+        alert("Erro ao convidar membro.");
+      }
+    }
+
+    async function removeMember(id) {
+      if (!confirm("Remover este membro do time?")) return;
+      try {
+        await fetch(`/api/team/members/${id}`, {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        loadMembers();
+      } catch (err) {
+        alert("Erro ao remover membro.");
+      }
+    }
+
+    // === Support Tickets ===
+    async function loadTickets() {
+      try {
+        const res = await fetch("/api/support", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const container = document.getElementById("tickets-list");
+
+        const tickets = data.tickets || [];
+        if (tickets.length === 0) {
+          container.innerHTML = '<p class="empty-state">Nenhum ticket aberto.</p>';
+          return;
+        }
+
+        container.innerHTML = tickets.map(t => `
+          <div class="ticket-item">
+            <div class="ticket-header">
+              <span class="ticket-subject">${escapeHtml(t.subject)}</span>
+              <div class="ticket-badges">
+                ${t.priority === "prioritário" ? '<span class="badge-priority">⚡ prioritário</span>' : ''}
+                <span class="badge-status ${t.status}">${t.status}</span>
+              </div>
+            </div>
+            <p class="ticket-message">${escapeHtml(t.message)}</p>
+            <span class="ticket-date">${formatDate(t.created_at)}</span>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Erro ao carregar tickets:", err);
+      }
+    }
+
+    async function createTicket() {
+      const subject = document.getElementById("ticket-subject").value.trim();
+      const message = document.getElementById("ticket-message").value.trim();
+
+      if (!subject || !message) return alert("Preencha assunto e mensagem.");
+
+      try {
+        const res = await fetch("/api/support", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ subject, message }),
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error);
+
+        alert(`Ticket criado! Prioridade: ${data.priority}`);
+        document.getElementById("ticket-subject").value = "";
+        document.getElementById("ticket-message").value = "";
+        loadTickets();
+      } catch (err) {
+        alert("Erro ao criar ticket.");
+      }
+    }
+
+    // === Reports ===
+    async function loadReports() {
+      try {
+        const res = await fetch("/api/reports", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        const container = document.getElementById("reports-content");
+
+        if (!res.ok) {
+          container.innerHTML = `<p class="empty-state">${data.error}</p>`;
+          return;
+        }
+
+        const errorTypes = (data.errorsByType || []).map(e => `${e.type}: ${e.count}`).join(", ") || "nenhum";
+        const weeklyMax = Math.max(...(data.weeklyUsage || []).map(d => d.count), 1);
+
+        let weeklyHtml = "";
+        if (data.weeklyUsage && data.weeklyUsage.length > 0) {
+          weeklyHtml = `
+            <div class="report-list" style="margin-top:1.2rem;">
+              <h4>📈 Uso nos últimos 7 dias</h4>
+              <div class="weekly-chart">
+                ${data.weeklyUsage.map(d => {
+                  const height = Math.max((d.count / weeklyMax) * 80, 4);
+                  const dayLabel = new Date(d.day + "T00:00:00").toLocaleDateString("pt-BR", { weekday: "short" });
+                  return `
+                    <div class="chart-bar-container">
+                      <div class="chart-bar" style="height: ${height}px;" title="${d.count} análises"></div>
+                      <span class="chart-label">${dayLabel}</span>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          `;
+        }
+
+        let commonHtml = "";
+        if (data.mostCommon && data.mostCommon.length > 0) {
+          commonHtml = `
+            <div class="report-list" style="margin-top:1.2rem;">
+              <h4>🔥 Erros mais comuns</h4>
+              ${data.mostCommon.map(e => `
+                <div class="report-item">
+                  <span class="error-text">${escapeHtml(e.input_error)}</span>
+                  <span class="error-count">${e.count}x</span>
+                </div>
+              `).join("")}
+            </div>
+          `;
+        }
+
+        container.innerHTML = `
+          <div class="reports-stats">
+            <div class="report-stat">
+              <div class="value">${data.total || 0}</div>
+              <div class="label">total análises</div>
+            </div>
+            <div class="report-stat">
+              <div class="value">${(data.errorsByType || []).length}</div>
+              <div class="label">tipos de uso</div>
+            </div>
+            <div class="report-stat">
+              <div class="value">${(data.weeklyUsage || []).reduce((a, b) => a + b.count, 0)}</div>
+              <div class="label">esta semana</div>
+            </div>
+          </div>
+          ${commonHtml}
+          ${weeklyHtml}
+        `;
+      } catch (err) {
+        console.error("Erro ao carregar relatórios:", err);
+      }
+    }
+
+    // === Utils ===
+    function logout() {
+      localStorage.removeItem("debugai_token");
+      window.location.href = "/";
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const date = new Date(dateStr + "Z");
+      return date.toLocaleDateString("pt-BR") + " " + date.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+  </script>
+</body>
+</html>

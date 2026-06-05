@@ -60,10 +60,14 @@ function showLoggedInState() {
   document.getElementById("analysis-limit").textContent = planInfo ? planInfo.analysisLimit : "20";
   document.getElementById("user-plan").textContent = planInfo ? planInfo.planName : "Grátis";
 
-  // Atualiza header — mostra nome do usuário
+  // Atualiza header — mostra nome do usuário + link dashboard se Team
   const headerActions = document.getElementById("header-actions");
+  const dashboardLink = planInfo && planInfo.plan === "team"
+    ? `<a href="/dashboard.html" class="btn-primary-sm" style="font-size:0.8rem;padding:0.4rem 0.9rem;">dashboard</a>`
+    : "";
   headerActions.innerHTML = `
     <span style="color: var(--text-secondary); font-size: 0.84rem;">olá, <strong style="color: var(--accent);">${currentUser.name}</strong></span>
+    ${dashboardLink}
     <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
   `;
 

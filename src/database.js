@@ -44,6 +44,42 @@ async function initDatabase() {
     )
   `);
 
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS api_keys (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      key TEXT UNIQUE NOT NULL,
+      name TEXT DEFAULT 'Default',
+      created_at TEXT DEFAULT (datetime('now')),
+      last_used_at TEXT,
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS team_members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      team_owner_id INTEGER NOT NULL,
+      member_id INTEGER NOT NULL,
+      added_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (team_owner_id) REFERENCES users(id),
+      FOREIGN KEY (member_id) REFERENCES users(id)
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS support_tickets (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      subject TEXT NOT NULL,
+      message TEXT NOT NULL,
+      status TEXT DEFAULT 'aberto',
+      priority TEXT DEFAULT 'normal',
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
   console.log("✓ Banco de dados inicializado");
 }
 
