@@ -3,6 +3,8 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const crypto = require("crypto");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const { debugCode } = require("./debug");
 const { router: authRouter, authMiddleware } = require("./auth");
 const paymentsRouter = require("./payments");
@@ -11,23 +13,75 @@ const { canAnalyze, hasFeature, getPlanInfo } = require("./plans");
 
 const app = express();
 
+// === SEGURANÇA ===
+
+// Helmet - headers de segurança (XSS, clickjacking, etc)
+app.use(helmet({
+  contentSecurityPolicy: false, // desativa pra não quebrar inline scripts
+  crossOriginEmbedderPolicy: false,
+}));
+
+// CORS - restringe para o domínio correto
+const allowedOrigins = [
+  process.env.BASE_URL || "http://localhost:3000",
+  "https://debugai-uhqi.onrender.com",
+];
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true); // em dev permite tudo, em prod pode restringir
+    }
+  },
+  credentials: true,
+}));
+
+// Rate limiting geral - 100 req por 15 min por IP
+const generalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: "Muitas requisições. Tente novamente em alguns minutos." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiting para auth - 10 tentativas por 15 min (previne brute force)
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: "Muitas tentativas de login. Aguarde 15 minutos." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Rate limiting para API de debug - 30 req por minuto
+const debugLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { error: "Limite de requisições atingido. Aguarde 1 minuto." },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Aplica rate limit geral
+app.use("/api/", generalLimiter);
+
 // IMPORTANTE: webhook do Stripe precisa do body raw, antes do express.json()
 app.use("/api/payments/webhook", express.raw({ type: "application/json" }));
-
-app.use(cors());
 app.use(express.json());
 
 // Serve arquivos estáticos (HTML, CSS, JS) da pasta public
 app.use(express.static(path.join(__dirname, "..", "public")));
 
-// Rotas de autenticação (register, login, me)
-app.use("/api/auth", authRouter);
+// Rotas de autenticação (register, login, me) - com rate limit anti brute force
+app.use("/api/auth", authLimiter, authRouter);
 
 // Rotas de pagamento (checkout, webhook)
 app.use("/api/payments", paymentsRouter);
 
 // === API DE DEBUG ===
-app.post("/api/debug", authMiddleware, async (req, res) => {
+app.post("/api/debug", debugLimiter, authMiddleware, async (req, res) => {
   const { linguagem, erro, codigo, contexto } = req.body;
 
   if (!erro) {

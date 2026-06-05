@@ -14,13 +14,26 @@ router.post("/register", async (req, res) => {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
   }
 
+  // Sanitização básica
+  const cleanName = name.trim().substring(0, 100).replace(/[<>]/g, "");
+  const cleanEmail = email.trim().toLowerCase().substring(0, 255);
+
   if (password.length < 6) {
     return res.status(400).json({ error: "Senha deve ter pelo menos 6 caracteres." });
   }
 
+  if (password.length > 128) {
+    return res.status(400).json({ error: "Senha muito longa." });
+  }
+
+  // Validação básica de email
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return res.status(400).json({ error: "E-mail inválido." });
+  }
+
   try {
     // Verifica se email já existe
-    const existingUser = await db.prepare("SELECT id FROM users WHERE email = ?").get(email);
+    const existingUser = await db.prepare("SELECT id FROM users WHERE email = ?").get(cleanEmail);
     if (existingUser) {
       return res.status(409).json({ error: "Este e-mail já está cadastrado." });
     }
@@ -29,17 +42,17 @@ router.post("/register", async (req, res) => {
     const hashedPassword = bcrypt.hashSync(password, 10);
 
     // Insere no banco
-    const result = await db.prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)").run(name, email, hashedPassword);
+    const result = await db.prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)").run(cleanName, cleanEmail, hashedPassword);
 
     // Gera token JWT
-    const token = jwt.sign({ id: result.lastInsertRowid, email, name }, JWT_SECRET, {
+    const token = jwt.sign({ id: result.lastInsertRowid, email: cleanEmail, name: cleanName }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
     res.status(201).json({
       message: "Conta criada com sucesso!",
       token,
-      user: { id: result.lastInsertRowid, name, email, plan: "free", analysis_count: 0 },
+      user: { id: result.lastInsertRowid, name: cleanName, email: cleanEmail, plan: "free", analysis_count: 0 },
     });
   } catch (err) {
     console.error("Erro no registro:", err);
