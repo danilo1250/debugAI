@@ -29,7 +29,7 @@ async function fetchUser(token) {
       isLoggedIn = true;
       analysisCount = currentUser.analysis_count;
       await fetchPlanInfo(token);
-      showLoggedInState();
+      await showLoggedInState();
     } else {
       localStorage.removeItem("debugai_token");
     }
@@ -51,7 +51,7 @@ async function fetchPlanInfo(token) {
   }
 }
 
-function showLoggedInState() {
+async function showLoggedInState() {
   document.getElementById("demo-locked").style.display = "none";
   document.getElementById("demo-unlocked").style.display = "block";
 
@@ -168,7 +168,7 @@ async function handleAuth(e) {
 
     await fetchPlanInfo(data.token);
     closeModal();
-    showLoggedInState();
+    await showLoggedInState();
   } catch (err) {
     alert("Erro ao conectar com o servidor.");
     console.error(err);
