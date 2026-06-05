@@ -1,7 +1,7 @@
-const Anthropic = require("@anthropic-ai/sdk");
+const Groq = require("groq-sdk");
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
+const client = new Groq({
+  apiKey: process.env.GROQ_API_KEY,
 });
 
 const SYSTEM_PROMPT = `Você é o DebugAI, um assistente especializado em ajudar desenvolvedores a entender e corrigir erros de código.
@@ -24,7 +24,7 @@ Estrutura obrigatória de toda resposta:
 
 async function debugCode({ linguagem, erro, codigo, contexto }) {
   const userMessage = `
-**Linguagem/Framework:** ${linguagem}
+**Linguagem/Framework:** ${linguagem || "não especificada"}
 
 **Mensagem de erro:**
 \`\`\`
@@ -32,22 +32,24 @@ ${erro}
 \`\`\`
 
 **Código onde o erro ocorre:**
-\`\`\`${linguagem}
-${codigo}
+\`\`\`${linguagem || ""}
+${codigo || "Não fornecido"}
 \`\`\`
 
 **Contexto adicional:**
 ${contexto || "Nenhum contexto adicional."}
   `.trim();
 
-  const response = await client.messages.create({
-   model: "claude-sonnet-4-6",
+  const response = await client.chat.completions.create({
+    model: "llama-3.3-70b-versatile",
     max_tokens: 1024,
-    system: SYSTEM_PROMPT,
-    messages: [{ role: "user", content: userMessage }],
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: userMessage },
+    ],
   });
 
-  return response.content[0].text;
+  return response.choices[0].message.content;
 }
 
 module.exports = { debugCode };
