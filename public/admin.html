@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>debugAI — Admin</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .admin-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    .admin-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .admin-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .admin-header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 0.3rem;
+    }
+
+    /* Stats Cards */
+    .admin-stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .admin-stat {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.2rem;
+      text-align: center;
+    }
+
+    .admin-stat .value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .admin-stat .label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.2rem;
+    }
+
+    /* Tabs */
+    .admin-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      justify-content: center;
+    }
+
+    .admin-tab {
+      padding: 0.55rem 1.3rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-size: 0.84rem;
+      font-family: inherit;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .admin-tab:hover {
+      border-color: var(--border-light);
+      color: var(--text-primary);
+    }
+
+    .admin-tab.active {
+      background: var(--accent);
+      color: #0a0a0a;
+      border-color: var(--accent);
+    }
+
+    /* Table */
+    .admin-table {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .table-row {
+      display: flex;
+      align-items: center;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+
+    .table-row:last-child {
+      border-bottom: none;
+    }
+
+    .table-row:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .table-info {
+      flex: 1;
+    }
+
+    .table-name {
+      font-size: 0.9rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .table-email {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .table-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .table-badge {
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 0.25rem 0.7rem;
+      border-radius: 100px;
+      font-weight: 600;
+    }
+
+    .badge-free { background: rgba(102,102,102,0.15); color: var(--text-secondary); }
+    .badge-pro { background: rgba(96,165,250,0.15); color: var(--info); }
+    .badge-team { background: rgba(212,165,116,0.15); color: var(--accent); }
+    .badge-aberto { background: rgba(96,165,250,0.15); color: var(--info); }
+    .badge-resolvido { background: rgba(74,222,128,0.15); color: var(--success); }
+    .badge-prioritario { background: rgba(212,165,116,0.15); color: var(--accent); }
+
+    .table-actions {
+      display: flex;
+      gap: 0.4rem;
+    }
+
+    .table-actions select {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 0.35rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+
+    .table-actions button {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      padding: 0.35rem 0.7rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+
+    .table-actions button:hover {
+      border-color: var(--error);
+      color: var(--error);
+    }
+
+    .table-actions button.resolve:hover {
+      border-color: var(--success);
+      color: var(--success);
+    }
+
+    .ticket-message-preview {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 0.3rem;
+      max-width: 500px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      .admin-stats { grid-template-columns: repeat(2, 1fr); }
+      .table-row { flex-direction: column; align-items: flex-start; }
+      .table-actions { margin-top: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-logo">
+      <a href="/" style="color: var(--accent);"><span class="logo">debugAI</span></a>
+    </div>
+    <nav>
+      <a href="/">home</a>
+      <a href="/admin.html" style="color: var(--accent);">admin</a>
+    </nav>
+    <div class="header-actions">
+      <span style="color: var(--text-secondary); font-size: 0.84rem;">🔐 painel admin</span>
+      <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
+    </div>
+  </header>
+
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>🔐 Painel Admin</h1>
+      <p>Controle total do debugAI</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="admin-stats">
+      <div class="admin-stat"><div class="value" id="stat-users">-</div><div class="label">usuários</div></div>
+      <div class="admin-stat"><div class="value" id="stat-analyses">-</div><div class="label">análises</div></div>
+      <div class="admin-stat"><div class="value" id="stat-tickets">-</div><div class="label">tickets</div></div>
+      <div class="admin-stat"><div class="value" id="stat-open">-</div><div class="label">tickets abertos</div></div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="admin-tabs">
+      <button class="admin-tab active" onclick="switchAdminTab('users')">👥 usuários</button>
+      <button class="admin-tab" onclick="switchAdminTab('tickets')">🎧 tickets</button>
+    </div>
+
+    <!-- Users Tab -->
+    <div id="admin-users" class="admin-table">
+      <p class="empty-state">Carregando...</p>
+    </div>
+
+    <!-- Tickets Tab -->
+    <div id="admin-tickets" class="admin-table" style="display:none;">
+      <p class="empty-state">Carregando...</p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">debugAI</div>
+    <p>© 2025 debugAI — painel administrativo</p>
+  </footer>
+
+  <script>
+    const token = localStorage.getItem("debugai_token");
+    if (!token) window.location.href = "/";
+
+    window.addEventListener("DOMContentLoaded", async () => {
+      // Verifica se é admin
+      const checkRes = await fetch("/api/admin/check", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const checkData = await checkRes.json();
+      if (!checkData.isAdmin) {
+        alert("Acesso negado. Apenas administradores.");
+        window.location.href = "/";
+        return;
+      }
+
+      loadStats();
+      loadUsers();
+      loadTickets();
+    });
+
+    async function loadStats() {
+      const res = await fetch("/api/admin/stats", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      document.getElementById("stat-users").textContent = data.totalUsers;
+      document.getElementById("stat-analyses").textContent = data.totalAnalyses;
+      document.getElementById("stat-tickets").textContent = data.totalTickets;
+      document.getElementById("stat-open").textContent = data.openTickets;
+    }
+
+    async function loadUsers() {
+      const res = await fetch("/api/admin/users", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      const container = document.getElementById("admin-users");
+
+      if (!data.users || data.users.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nenhum usuário.</p>';
+        return;
+      }
+
+      container.innerHTML = data.users.map(u => `
+        <div class="table-row">
+          <div class="table-info">
+            <div class="table-name">${escapeHtml(u.name)}</div>
+            <div class="table-email">${escapeHtml(u.email)}</div>
+            <div class="table-meta">${u.analysis_count} análises • desde ${formatDate(u.created_at)}</div>
+          </div>
+          <span class="table-badge badge-${u.plan}">${u.plan}</span>
+          <div class="table-actions">
+            <select onchange="changePlan(${u.id}, this.value)">
+              <option value="free" ${u.plan === 'free' ? 'selected' : ''}>free</option>
+              <option value="pro" ${u.plan === 'pro' ? 'selected' : ''}>pro</option>
+              <option value="team" ${u.plan === 'team' ? 'selected' : ''}>team</option>
+            </select>
+            <button onclick="deleteUser(${u.id})">🗑</button>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    async function loadTickets() {
+      const res = await fetch("/api/admin/tickets", { headers: { Authorization: `Bearer ${token}` } });
+      const data = await res.json();
+      const container = document.getElementById("admin-tickets");
+
+      if (!data.tickets || data.tickets.length === 0) {
+        container.innerHTML = '<p class="empty-state">Nenhum ticket.</p>';
+        return;
+      }
+
+      container.innerHTML = data.tickets.map(t => `
+        <div class="table-row">
+          <div class="table-info">
+            <div class="table-name">${escapeHtml(t.subject)}</div>
+            <div class="table-email">de: ${escapeHtml(t.user_name)} (${escapeHtml(t.user_email)})</div>
+            <div class="ticket-message-preview">${escapeHtml(t.message)}</div>
+            <div class="table-meta">${formatDate(t.created_at)}</div>
+          </div>
+          <span class="table-badge badge-${t.priority === 'prioritário' ? 'prioritario' : ''}">${t.priority}</span>
+          <span class="table-badge badge-${t.status}">${t.status}</span>
+          <div class="table-actions">
+            ${t.status === 'aberto' ? `<button class="resolve" onclick="resolveTicket(${t.id})">✓ resolver</button>` : ''}
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function switchAdminTab(tab) {
+      const tabs = document.querySelectorAll(".admin-tab");
+      tabs.forEach(t => t.classList.remove("active"));
+
+      if (tab === "users") {
+        tabs[0].classList.add("active");
+        document.getElementById("admin-users").style.display = "block";
+        document.getElementById("admin-tickets").style.display = "none";
+      } else {
+        tabs[1].classList.add("active");
+        document.getElementById("admin-users").style.display = "none";
+        document.getElementById("admin-tickets").style.display = "block";
+      }
+    }
+
+    async function changePlan(userId, plan) {
+      await fetch(`/api/admin/users/${userId}/plan`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ plan }),
+      });
+      loadStats();
+      loadUsers();
+    }
+
+    async function deleteUser(userId) {
+      if (!confirm("Tem certeza? Isso remove o usuário e todos os dados dele.")) return;
+      const res = await fetch(`/api/admin/users/${userId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (!res.ok) return alert(data.error);
+      loadStats();
+      loadUsers();
+    }
+
+    async function resolveTicket(ticketId) {
+      await fetch(`/api/admin/tickets/${ticketId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ status: "resolvido" }),
+      });
+      loadStats();
+      loadTickets();
+    }
+
+    function logout() {
+      localStorage.removeItem("debugai_token");
+      window.location.href = "/";
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return "";
+      const date = new Date(dateStr + "Z");
+      return date.toLocaleDateString("pt-BR");
+    }
+
+    function escapeHtml(text) {
+      if (!text) return "";
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
+</html>

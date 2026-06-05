@@ -329,6 +329,93 @@ app.get("/api/reports", authMiddleware, async (req, res) => {
   });
 });
 
+// ============================================================
+// === ADMIN PANEL ===
+// ============================================================
+
+// Middleware de admin - só permite acesso ao email configurado
+function adminMiddleware(req, res, next) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail || req.user.email !== adminEmail) {
+    return res.status(403).json({ error: "Acesso negado." });
+  }
+  next();
+}
+
+// Lista todos os usuários
+app.get("/api/admin/users", authMiddleware, adminMiddleware, async (req, res) => {
+  const users = await db.prepare(
+    "SELECT id, name, email, plan, analysis_count, created_at FROM users ORDER BY created_at DESC"
+  ).all();
+  res.json({ users });
+});
+
+// Muda plano de um usuário
+app.put("/api/admin/users/:id/plan", authMiddleware, adminMiddleware, async (req, res) => {
+  const { plan } = req.body;
+  if (!["free", "pro", "team"].includes(plan)) {
+    return res.status(400).json({ error: "Plano inválido." });
+  }
+  await db.prepare("UPDATE users SET plan = ? WHERE id = ?").run(plan, parseInt(req.params.id));
+  res.json({ message: `Plano atualizado para ${plan}.` });
+});
+
+// Deleta um usuário
+app.delete("/api/admin/users/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  const userId = parseInt(req.params.id);
+  if (userId === req.user.id) {
+    return res.status(400).json({ error: "Você não pode deletar a si mesmo." });
+  }
+  await db.prepare("DELETE FROM history WHERE user_id = ?").run(userId);
+  await db.prepare("DELETE FROM api_keys WHERE user_id = ?").run(userId);
+  await db.prepare("DELETE FROM team_members WHERE team_owner_id = ? OR member_id = ?").run(userId, userId);
+  await db.prepare("DELETE FROM support_tickets WHERE user_id = ?").run(userId);
+  await db.prepare("DELETE FROM users WHERE id = ?").run(userId);
+  res.json({ message: "Usuário removido." });
+});
+
+// Lista todos os tickets (admin vê todos)
+app.get("/api/admin/tickets", authMiddleware, adminMiddleware, async (req, res) => {
+  const tickets = await db.prepare(
+    "SELECT t.*, u.name as user_name, u.email as user_email FROM support_tickets t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC"
+  ).all();
+  res.json({ tickets });
+});
+
+// Responde/atualiza status de um ticket
+app.put("/api/admin/tickets/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  const { status } = req.body;
+  if (!["aberto", "resolvido"].includes(status)) {
+    return res.status(400).json({ error: "Status inválido." });
+  }
+  await db.prepare("UPDATE support_tickets SET status = ? WHERE id = ?").run(status, parseInt(req.params.id));
+  res.json({ message: `Ticket atualizado para ${status}.` });
+});
+
+// Estatísticas gerais (admin)
+app.get("/api/admin/stats", authMiddleware, adminMiddleware, async (req, res) => {
+  const totalUsers = await db.prepare("SELECT COUNT(*) as count FROM users").get();
+  const totalAnalyses = await db.prepare("SELECT COUNT(*) as count FROM history").get();
+  const totalTickets = await db.prepare("SELECT COUNT(*) as count FROM support_tickets").get();
+  const openTickets = await db.prepare("SELECT COUNT(*) as count FROM support_tickets WHERE status = 'aberto'").get();
+  const planCounts = await db.prepare("SELECT plan, COUNT(*) as count FROM users GROUP BY plan").all();
+
+  res.json({
+    totalUsers: totalUsers.count,
+    totalAnalyses: totalAnalyses.count,
+    totalTickets: totalTickets.count,
+    openTickets: openTickets.count,
+    planCounts,
+  });
+});
+
+// Verifica se é admin
+app.get("/api/admin/check", authMiddleware, (req, res) => {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  const isAdmin = adminEmail && req.user.email === adminEmail;
+  res.json({ isAdmin });
+});
+
 // === INICIA SERVIDOR ===
 async function start() {
   await initDatabase();
