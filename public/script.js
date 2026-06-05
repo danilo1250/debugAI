@@ -1,0 +1,343 @@
+// === Estado ===
+let isLoggedIn = false;
+let authMode = "login";
+let analysisCount = 0;
+let currentUser = null;
+let planInfo = null;
+
+// === Verifica se já está logado ao carregar a página ===
+window.addEventListener("DOMContentLoaded", () => {
+  const token = localStorage.getItem("debugai_token");
+  if (token) {
+    fetchUser(token);
+  } else {
+    // Garante que o demo fica bloqueado
+    document.getElementById("demo-locked").style.display = "block";
+    document.getElementById("demo-unlocked").style.display = "none";
+  }
+});
+
+async function fetchUser(token) {
+  try {
+    const res = await fetch("/api/auth/me", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      currentUser = data.user;
+      isLoggedIn = true;
+      analysisCount = currentUser.analysis_count;
+      await fetchPlanInfo(token);
+      showLoggedInState();
+    } else {
+      localStorage.removeItem("debugai_token");
+    }
+  } catch (err) {
+    console.error("Erro ao verificar sessão:", err);
+  }
+}
+
+async function fetchPlanInfo(token) {
+  try {
+    const res = await fetch("/api/plan", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      planInfo = await res.json();
+    }
+  } catch (err) {
+    console.error("Erro ao buscar plano:", err);
+  }
+}
+
+function showLoggedInState() {
+  document.getElementById("demo-locked").style.display = "none";
+  document.getElementById("demo-unlocked").style.display = "block";
+
+  // Atualiza stats do demo
+  document.getElementById("analysis-count").textContent = planInfo ? planInfo.analysisUsed : analysisCount;
+  document.getElementById("analysis-limit").textContent = planInfo ? planInfo.analysisLimit : "20";
+  document.getElementById("user-plan").textContent = planInfo ? planInfo.planName : "Grátis";
+
+  // Atualiza header — mostra nome do usuário
+  const headerActions = document.getElementById("header-actions");
+  headerActions.innerHTML = `
+    <span style="color: var(--text-secondary); font-size: 0.84rem;">olá, <strong style="color: var(--accent);">${currentUser.name}</strong></span>
+    <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
+  `;
+
+  // Bloqueia tab de revisão se plano free
+  if (planInfo && !planInfo.features.codeReview) {
+    const reviewTab = document.querySelector('.demo-tabs .tab:last-child');
+    if (reviewTab) {
+      reviewTab.textContent = "revisar código 🔒";
+      reviewTab.setAttribute("onclick", "showUpgradeMessage()");
+    }
+  }
+}
+
+function showUpgradeMessage() {
+  alert("⚡ Revisão de código disponível nos planos Pro e Team.\n\nFaça upgrade para desbloquear!");
+  document.getElementById("pricing").scrollIntoView({ behavior: "smooth" });
+}
+
+// === Modal ===
+function openModal() {
+  document.getElementById("login-modal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("login-modal").style.display = "none";
+}
+
+function switchModalTab(mode) {
+  authMode = mode;
+  const nameField = document.getElementById("name-field");
+  const tabs = document.querySelectorAll(".modal-tab");
+  const submitBtn = document.querySelector("#auth-form > button[type='submit']");
+
+  if (mode === "register") {
+    nameField.style.display = "block";
+    tabs[0].classList.remove("active");
+    tabs[1].classList.add("active");
+    submitBtn.textContent = "criar conta";
+  } else {
+    nameField.style.display = "none";
+    tabs[0].classList.add("active");
+    tabs[1].classList.remove("active");
+    submitBtn.textContent = "entrar";
+  }
+}
+
+async function handleAuth(e) {
+  e.preventDefault();
+
+  const email = document.getElementById("auth-email").value.trim();
+  const password = document.getElementById("auth-password").value.trim();
+  const name = document.getElementById("auth-name").value.trim();
+
+  if (!email || !password) {
+    return alert("Preencha e-mail e senha.");
+  }
+
+  if (authMode === "register" && !name) {
+    return alert("Preencha seu nome.");
+  }
+
+  const url = authMode === "register" ? "/api/auth/register" : "/api/auth/login";
+  const body = authMode === "register" ? { name, email, password } : { email, password };
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return alert(data.error || "Erro ao autenticar.");
+    }
+
+    // Salva token e dados do usuário
+    localStorage.setItem("debugai_token", data.token);
+    currentUser = data.user;
+    isLoggedIn = true;
+    analysisCount = currentUser.analysis_count;
+
+    await fetchPlanInfo(data.token);
+    closeModal();
+    showLoggedInState();
+  } catch (err) {
+    alert("Erro ao conectar com o servidor.");
+    console.error(err);
+  }
+}
+
+// === Demo Tabs ===
+function switchTab(tab) {
+  const tabs = document.querySelectorAll(".demo-tabs .tab");
+  tabs.forEach((t) => t.classList.remove("active"));
+
+  if (tab === "error") {
+    tabs[0].classList.add("active");
+    document.getElementById("tab-error").style.display = "block";
+    document.getElementById("tab-review").style.display = "none";
+  } else {
+    tabs[1].classList.add("active");
+    document.getElementById("tab-error").style.display = "none";
+    document.getElementById("tab-review").style.display = "block";
+  }
+}
+
+// === Análise de Erro ===
+async function analyzeError() {
+  // Bloqueia se não está logado
+  if (!isLoggedIn || !localStorage.getItem("debugai_token")) {
+    alert("Você precisa fazer login para usar o debugAI.");
+    openModal();
+    return;
+  }
+
+  const erro = document.getElementById("error-input").value.trim();
+  const contexto = document.getElementById("context-input").value.trim();
+
+  if (!erro) return alert("Cole um erro ou stack trace.");
+
+  document.getElementById("error-loading").style.display = "block";
+  document.getElementById("error-result").style.display = "none";
+
+  try {
+    const token = localStorage.getItem("debugai_token");
+    const res = await fetch("/api/debug", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ erro, contexto }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (data.upgrade) {
+        alert(data.error + "\n\nClique em 'ver planos' para fazer upgrade.");
+        document.getElementById("pricing").scrollIntoView({ behavior: "smooth" });
+      } else {
+        alert(data.error);
+      }
+    } else {
+      document.getElementById("error-result-text").textContent = data.resultado;
+      document.getElementById("error-result").style.display = "block";
+      analysisCount++;
+      document.getElementById("analysis-count").textContent = analysisCount;
+    }
+  } catch (err) {
+    alert("Erro ao conectar com a API.");
+    console.error(err);
+  } finally {
+    document.getElementById("error-loading").style.display = "none";
+  }
+}
+
+// === Revisão de Código ===
+async function reviewCode() {
+  // Bloqueia se não está logado
+  if (!isLoggedIn || !localStorage.getItem("debugai_token")) {
+    alert("Você precisa fazer login para usar o debugAI.");
+    openModal();
+    return;
+  }
+
+  const codigo = document.getElementById("review-input").value.trim();
+
+  if (!codigo) return alert("Cole o código para revisão.");
+
+  document.getElementById("review-loading").style.display = "block";
+  document.getElementById("review-result").style.display = "none";
+
+  try {
+    const token = localStorage.getItem("debugai_token");
+    const res = await fetch("/api/debug", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        erro: "Revisão de código solicitada",
+        codigo,
+        contexto: "O usuário quer uma revisão geral do código.",
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (data.upgrade) {
+        alert(data.error + "\n\nClique em 'ver planos' para fazer upgrade.");
+        document.getElementById("pricing").scrollIntoView({ behavior: "smooth" });
+      } else {
+        alert(data.error);
+      }
+    } else {
+      document.getElementById("review-result-text").textContent = data.resultado;
+      document.getElementById("review-result").style.display = "block";
+      analysisCount++;
+      document.getElementById("analysis-count").textContent = analysisCount;
+    }
+  } catch (err) {
+    alert("Erro ao conectar com a API.");
+    console.error(err);
+  } finally {
+    document.getElementById("review-loading").style.display = "none";
+  }
+}
+
+// === Utilitários ===
+function logout() {
+  localStorage.removeItem("debugai_token");
+  isLoggedIn = false;
+  currentUser = null;
+  planInfo = null;
+  window.location.reload();
+}
+
+function copyResult(type) {
+  const text = document.getElementById(`${type}-result-text`).textContent;
+  navigator.clipboard.writeText(text).then(() => alert("Copiado!"));
+}
+
+function clearResult(type) {
+  document.getElementById(`${type}-result-text`).textContent = "";
+  document.getElementById(`${type}-result`).style.display = "none";
+}
+
+// === Pagamento / Stripe ===
+async function subscribePlan(plan) {
+  const token = localStorage.getItem("debugai_token");
+
+  if (!token) {
+    alert("Faça login primeiro para assinar um plano.");
+    openModal();
+    return;
+  }
+
+  try {
+    const res = await fetch("/api/payments/checkout", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ plan }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return alert(data.error || "Erro ao iniciar pagamento.");
+    }
+
+    // Redireciona para o Stripe Checkout
+    window.location.href = data.url;
+  } catch (err) {
+    console.error("Erro no checkout:", err);
+    alert("Erro ao conectar com o servidor. Verifique sua conexão.");
+  }
+}
+
+// === Verifica se voltou do pagamento ===
+(function checkPaymentReturn() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("payment") === "success") {
+    alert("🎉 Pagamento confirmado! Seu plano foi atualizado.");
+    window.history.replaceState({}, "", "/");
+  } else if (params.get("payment") === "cancel") {
+    alert("Pagamento cancelado. Você pode tentar novamente.");
+    window.history.replaceState({}, "", "/");
+  }
+})();

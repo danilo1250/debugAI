@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>debugAI — debug mais rápido, shippe mais cedo</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-logo">
+      <span class="logo">debugAI</span>
+    </div>
+    <nav>
+      <a href="#features">funcionalidades</a>
+      <a href="#demo">demo</a>
+      <a href="#pricing">preços</a>
+    </nav>
+    <div class="header-actions" id="header-actions">
+      <button id="header-login-btn" onclick="openModal()">entrar</button>
+      <a href="#demo" class="btn-primary-sm" id="header-cta-btn">começar grátis</a>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section id="hero">
+    <span class="badge-hero">⚡ IA para devs que odeiam perder tempo</span>
+
+    <h1>debug mais rápido,<br/>shippe mais cedo.</h1>
+
+    <p class="hero-subtitle">O debugAI analisa seu código, identifica a causa raiz do erro e já sugere a correção — tudo em segundos.</p>
+
+    <div class="hero-ctas">
+      <a href="#demo" class="btn-primary">experimentar agora →</a>
+      <a href="#pricing" class="btn-secondary">ver planos</a>
+    </div>
+
+    <div class="terminal">
+      <div class="terminal-header">
+        <span></span><span></span><span></span>
+        <span class="terminal-title">debugai — bash</span>
+      </div>
+      <div class="terminal-body">
+        <p><span class="prompt">❯</span> debugai analyze app.js:142</p>
+        <p class="dim">  scanning dependencies...</p>
+        <p class="dim">  reading stack trace...</p>
+        <br/>
+        <p><span class="warning">⚠</span> TypeError: Cannot read properties of undefined</p>
+        <p class="dim">  at processPayment (app.js:142:18)</p>
+        <br/>
+        <p><span class="info">◆</span> causa raiz encontrada:</p>
+        <p class="dim">  user.subscription undefined — fetch retornou 401</p>
+        <br/>
+        <p><span class="success">✓</span> correção: if (!user?.subscription) return handleAuthError()</p>
+        <p><span class="prompt">❯</span> <span class="cursor">_</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <span class="section-label">funcionalidades</span>
+    <h2>tudo que você precisa<br/>para debugar sem dor</h2>
+
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <h3>causa raiz em segundos</h3>
+        <p>A IA analisa o stack trace completo e aponta exatamente onde o problema começa.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">✨</div>
+        <h3>correção pronta pra colar</h3>
+        <p>Não é só diagnóstico. Você recebe o trecho corrigido com explicação do porquê funcionou.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">⌨️</div>
+        <h3>extensão VS Code</h3>
+        <p>Ctrl+Shift+D com o erro selecionado e o debugAI abre a análise direto no editor.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">📚</div>
+        <h3>histórico de bugs</h3>
+        <p>Aprenda com os erros passados. Guarda registro e alerta quando padrões similares aparecem.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <h3>integração GitHub</h3>
+        <p>Detecta bugs antes do merge e comenta automaticamente nos PRs.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">🔒</div>
+        <h3>privacidade total</h3>
+        <p>Seu código não é usado pra treinar nenhum modelo. Zero retenção de dados.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMO -->
+  <section id="demo">
+    <div class="demo-header">
+      <span class="section-label">demo</span>
+      <h2>teste ao vivo</h2>
+      <p>Cole um erro ou código e veja a IA do debugAI em ação.</p>
+    </div>
+
+    <!-- Login Required State -->
+    <div id="demo-locked" class="demo-locked-card">
+      <div class="lock-icon">🔒</div>
+      <h3>acesso necessário</h3>
+      <p>Faça login ou crie uma conta gratuita para usar o demo.</p>
+      <div class="demo-locked-actions">
+        <button onclick="openModal()" class="btn-primary">entrar</button>
+        <button onclick="openModal()" class="btn-secondary">criar conta grátis</button>
+      </div>
+    </div>
+
+    <!-- Demo Unlocked State -->
+    <div id="demo-unlocked" style="display:none;">
+      <div id="demo-stats">
+        <div class="stat-card">
+          <span id="analysis-count">0</span>
+          <p>análises este mês</p>
+        </div>
+        <div class="stat-card">
+          <span id="analysis-limit">20</span>
+          <p>limite do plano</p>
+        </div>
+        <div class="stat-card">
+          <span id="user-plan">Grátis</span>
+          <p>seu plano</p>
+        </div>
+      </div>
+
+      <div class="demo-tabs">
+        <button class="tab active" onclick="switchTab('error')">analisar erro</button>
+        <button class="tab" onclick="switchTab('review')">revisar código</button>
+      </div>
+
+      <!-- Error Analysis Tab -->
+      <div id="tab-error" class="tab-content">
+        <div class="input-group">
+          <label>stack trace / erro</label>
+          <textarea id="error-input" placeholder="Cole o erro ou stack trace aqui..."></textarea>
+        </div>
+
+        <div class="input-group">
+          <label>contexto (opcional)</label>
+          <textarea id="context-input" placeholder="Descreva o que estava fazendo quando o erro apareceu..." style="min-height:80px;"></textarea>
+        </div>
+
+        <button class="btn-analyze" onclick="analyzeError()">🔍 analisar com debugAI</button>
+        <p id="error-loading" class="loading-text" style="display:none;">⏳ sua IA analisando o erro...</p>
+
+        <div id="error-result" class="result-card" style="display:none;">
+          <pre id="error-result-text"></pre>
+          <div class="result-actions">
+            <button onclick="copyResult('error')">📋 copiar</button>
+            <button onclick="clearResult('error')">🗑 limpar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code Review Tab -->
+      <div id="tab-review" class="tab-content" style="display:none;">
+        <div class="input-group">
+          <label>código para revisão</label>
+          <textarea id="review-input" placeholder="Cole o código que deseja revisar..."></textarea>
+        </div>
+
+        <button class="btn-analyze" onclick="reviewCode()">🔍 revisar com debugAI</button>
+        <p id="review-loading" class="loading-text" style="display:none;">⏳ sua IA revisando o código...</p>
+
+        <div id="review-result" class="result-card" style="display:none;">
+          <pre id="review-result-text"></pre>
+          <div class="result-actions">
+            <button onclick="copyResult('review')">📋 copiar</button>
+            <button onclick="clearResult('review')">🗑 limpar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <span class="section-label">planos</span>
+    <h2>simples e transparente</h2>
+
+    <div class="pricing-grid">
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3>Grátis</h3>
+          <p class="price">R$0<span>/mês</span></p>
+          <p class="pricing-desc">Para experimentar e projetos pessoais.</p>
+        </div>
+        <ul>
+          <li class="included">✓ 20 análises por mês</li>
+          <li class="included">✓ Extensão VS Code</li>
+          <li class="included">✓ Análise de erros</li>
+          <li class="excluded">✗ Revisão de código</li>
+          <li class="excluded">✗ Histórico ilimitado</li>
+          <li class="excluded">✗ Integração GitHub</li>
+        </ul>
+        <a href="#demo" class="btn-plan">começar grátis</a>
+      </div>
+
+      <div class="pricing-card popular">
+        <span class="badge">⚡ mais popular</span>
+        <div class="pricing-header">
+          <h3>Pro</h3>
+          <p class="price">R$49<span>/mês</span></p>
+          <p class="pricing-desc">Para devs que querem o máximo de produtividade.</p>
+        </div>
+        <ul>
+          <li class="included">✓ Análises ilimitadas</li>
+          <li class="included">✓ Extensão VS Code</li>
+          <li class="included">✓ Análise de erros</li>
+          <li class="included">✓ Revisão de código</li>
+          <li class="included">✓ Histórico ilimitado</li>
+          <li class="included">✓ Integração GitHub</li>
+        </ul>
+        <a href="#" onclick="subscribePlan('pro')" class="btn-plan">assinar Pro →</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-header">
+          <h3>Team</h3>
+          <p class="price">R$149<span>/mês</span></p>
+          <p class="pricing-desc">Para times inteiros. Até 10 devs inclusos.</p>
+        </div>
+        <ul>
+          <li class="included">✓ Tudo do Pro</li>
+          <li class="included">✓ Até 10 membros</li>
+          <li class="included">✓ Dashboard do time</li>
+          <li class="included">✓ Relatórios de bugs</li>
+          <li class="included">✓ Suporte prioritário</li>
+          <li class="included">✓ API própria</li>
+        </ul>
+        <a href="#" onclick="subscribePlan('team')" class="btn-plan">assinar Team →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats">
+    <div class="stat"><span>3min</span><p>por bug salvo</p></div>
+    <div class="stat"><span>94%</span><p>precisão causa raiz</p></div>
+    <div class="stat"><span>12+</span><p>linguagens</p></div>
+    <div class="stat"><span>0</span><p>dados retidos</p></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">debugAI</div>
+    <p>© 2025 debugAI — feito por devs, pra devs</p>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div id="login-modal" style="display:none;">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal()">✕</button>
+      <div class="modal-header">
+        <h2>bem-vindo ao debugAI</h2>
+        <p>entre ou crie sua conta para começar</p>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchModalTab('login')">entrar</button>
+        <button class="modal-tab" onclick="switchModalTab('register')">criar conta</button>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuth(event)">
+        <div id="name-field" style="display:none;">
+          <label>nome</label>
+          <input type="text" id="auth-name" placeholder="seu nome" />
+        </div>
+
+        <div>
+          <label>e-mail</label>
+          <input type="email" id="auth-email" placeholder="dev@email.com" />
+        </div>
+
+        <div>
+          <label>senha</label>
+          <input type="password" id="auth-password" placeholder="••••••••" />
+        </div>
+
+        <button type="submit" class="btn-submit">entrar</button>
+        <p class="modal-footer-text">Não tem conta? <a href="#" onclick="switchModalTab('register')">criar grátis</a></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
