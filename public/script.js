@@ -12,8 +12,10 @@ window.addEventListener("DOMContentLoaded", () => {
     fetchUser(token);
   } else {
     // Garante que o demo fica bloqueado
-    document.getElementById("demo-locked").style.display = "block";
-    document.getElementById("demo-unlocked").style.display = "none";
+    const locked = document.getElementById("demo-locked");
+    const unlocked = document.getElementById("demo-unlocked");
+    if (locked) locked.style.display = "block";
+    if (unlocked) unlocked.style.display = "none";
   }
 });
 
@@ -52,13 +54,18 @@ async function fetchPlanInfo(token) {
 }
 
 async function showLoggedInState() {
-  document.getElementById("demo-locked").style.display = "none";
-  document.getElementById("demo-unlocked").style.display = "block";
+  const locked = document.getElementById("demo-locked");
+  const unlocked = document.getElementById("demo-unlocked");
+  if (locked) locked.style.display = "none";
+  if (unlocked) unlocked.style.display = "block";
 
   // Atualiza stats do demo
-  document.getElementById("analysis-count").textContent = planInfo ? planInfo.analysisUsed : analysisCount;
-  document.getElementById("analysis-limit").textContent = planInfo ? planInfo.analysisLimit : "20";
-  document.getElementById("user-plan").textContent = planInfo ? planInfo.planName : "Grátis";
+  const analysisEl = document.getElementById("analysis-count");
+  const limitEl = document.getElementById("analysis-limit");
+  const planEl = document.getElementById("user-plan");
+  if (analysisEl) analysisEl.textContent = planInfo ? planInfo.analysisUsed : analysisCount;
+  if (limitEl) limitEl.textContent = planInfo ? planInfo.analysisLimit : "20";
+  if (planEl) planEl.textContent = planInfo ? planInfo.planName : "Grátis";
 
   // Atualiza header — mostra nome do usuário + link dashboard se Team
   const headerActions = document.getElementById("header-actions");
