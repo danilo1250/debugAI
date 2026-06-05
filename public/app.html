@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>debugAI — Analisar Código</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-logo">
+      <a href="/" style="color: var(--accent);"><span class="logo">debugAI</span></a>
+    </div>
+    <nav>
+      <a href="/">home</a>
+      <a href="/app.html" style="color: var(--accent);">usar IA</a>
+    </nav>
+    <div class="header-actions" id="header-actions">
+      <button onclick="openModal()">entrar</button>
+      <a href="#" onclick="openModal()" class="btn-primary-sm">começar grátis</a>
+    </div>
+  </header>
+
+  <!-- APP CONTENT -->
+  <section id="demo">
+    <div class="demo-header">
+      <span class="section-label">debugAI</span>
+      <h2>analisar código com IA</h2>
+      <p>Cole um erro ou código e receba a solução em segundos.</p>
+    </div>
+
+    <!-- Login Required State -->
+    <div id="demo-locked" class="demo-locked-card">
+      <div class="lock-icon">🔒</div>
+      <h3>acesso necessário</h3>
+      <p>Faça login ou crie uma conta gratuita para usar o debugAI.</p>
+      <div class="demo-locked-actions">
+        <button onclick="openModal()" class="btn-primary">entrar</button>
+        <button onclick="openModal()" class="btn-secondary">criar conta grátis</button>
+      </div>
+    </div>
+
+    <!-- Demo Unlocked State -->
+    <div id="demo-unlocked" style="display:none;">
+      <div id="demo-stats">
+        <div class="stat-card">
+          <span id="analysis-count">0</span>
+          <p>análises este mês</p>
+        </div>
+        <div class="stat-card">
+          <span id="analysis-limit">20</span>
+          <p>limite do plano</p>
+        </div>
+        <div class="stat-card">
+          <span id="user-plan">Grátis</span>
+          <p>seu plano</p>
+        </div>
+      </div>
+
+      <div class="demo-tabs">
+        <button class="tab active" onclick="switchTab('error')">analisar erro</button>
+        <button class="tab" onclick="switchTab('review')">revisar código</button>
+      </div>
+
+      <!-- Error Analysis Tab -->
+      <div id="tab-error" class="tab-content">
+        <div class="input-group">
+          <label>stack trace / erro</label>
+          <textarea id="error-input" placeholder="Cole o erro ou stack trace aqui..."></textarea>
+        </div>
+
+        <div class="input-group">
+          <label>contexto (opcional)</label>
+          <textarea id="context-input" placeholder="Descreva o que estava fazendo quando o erro apareceu..." style="min-height:80px;"></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-analyze" onclick="analyzeError()">🔍 analisar com debugAI</button>
+          <button class="btn-clear" onclick="clearInputs('error')">🗑 limpar campos</button>
+        </div>
+        <p id="error-loading" class="loading-text" style="display:none;">⏳ sua IA analisando o erro...</p>
+
+        <div id="error-result" class="result-card" style="display:none;">
+          <pre id="error-result-text"></pre>
+          <div class="result-actions">
+            <button onclick="copyResult('error')">📋 copiar</button>
+            <button onclick="clearResult('error')">🗑 limpar resultado</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code Review Tab -->
+      <div id="tab-review" class="tab-content" style="display:none;">
+        <div class="input-group">
+          <label>código para revisão</label>
+          <textarea id="review-input" placeholder="Cole o código que deseja revisar..."></textarea>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn-analyze" onclick="reviewCode()">🔍 revisar com debugAI</button>
+          <button class="btn-clear" onclick="clearInputs('review')">🗑 limpar campos</button>
+        </div>
+        <p id="review-loading" class="loading-text" style="display:none;">⏳ sua IA revisando o código...</p>
+
+        <div id="review-result" class="result-card" style="display:none;">
+          <pre id="review-result-text"></pre>
+          <div class="result-actions">
+            <button onclick="copyResult('review')">📋 copiar</button>
+            <button onclick="clearResult('review')">🗑 limpar resultado</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Histórico -->
+    <div id="history-section" style="display:none; margin-top: 2.5rem;">
+      <div class="history-header">
+        <h3>📋 seu histórico</h3>
+        <button class="btn-clear" onclick="clearAllHistory()">limpar tudo</button>
+      </div>
+      <div id="history-list"></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">debugAI</div>
+    <p>© 2025 debugAI — feito por devs, pra devs</p>
+  </footer>
+
+  <!-- LOGIN MODAL -->
+  <div id="login-modal" style="display:none;">
+    <div class="modal-overlay" onclick="closeModal()"></div>
+    <div class="modal-content">
+      <button class="close-modal" onclick="closeModal()">✕</button>
+      <div class="modal-header">
+        <h2>bem-vindo ao debugAI</h2>
+        <p>entre ou crie sua conta para começar</p>
+      </div>
+
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchModalTab('login')">entrar</button>
+        <button class="modal-tab" onclick="switchModalTab('register')">criar conta</button>
+      </div>
+
+      <form id="auth-form" onsubmit="handleAuth(event)">
+        <div id="name-field" style="display:none;">
+          <label>nome</label>
+          <input type="text" id="auth-name" placeholder="seu nome" />
+        </div>
+
+        <div>
+          <label>e-mail</label>
+          <input type="email" id="auth-email" placeholder="dev@email.com" />
+        </div>
+
+        <div>
+          <label>senha</label>
+          <input type="password" id="auth-password" placeholder="••••••••" />
+        </div>
+
+        <button type="submit" class="btn-submit">entrar</button>
+        <p class="modal-footer-text">Não tem conta? <a href="#" onclick="switchModalTab('register')">criar grátis</a></p>
+      </form>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

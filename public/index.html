@@ -15,12 +15,12 @@
     </div>
     <nav>
       <a href="#features">funcionalidades</a>
-      <a href="#demo">demo</a>
       <a href="#pricing">preços</a>
+      <a href="/app.html">usar IA</a>
     </nav>
     <div class="header-actions" id="header-actions">
-      <button id="header-login-btn" onclick="openModal()">entrar</button>
-      <a href="#demo" class="btn-primary-sm" id="header-cta-btn">começar grátis</a>
+      <button onclick="openModal()">entrar</button>
+      <a href="/app.html" class="btn-primary-sm">começar grátis</a>
     </div>
   </header>
 
@@ -33,7 +33,7 @@
     <p class="hero-subtitle">O debugAI analisa seu código, identifica a causa raiz do erro e já sugere a correção — tudo em segundos.</p>
 
     <div class="hero-ctas">
-      <a href="#demo" class="btn-primary">experimentar agora →</a>
+      <a href="/app.html" class="btn-primary">experimentar agora →</a>
       <a href="#pricing" class="btn-secondary">ver planos</a>
     </div>
 
@@ -103,106 +103,7 @@
     </div>
   </section>
 
-  <!-- DEMO -->
-  <section id="demo">
-    <div class="demo-header">
-      <span class="section-label">demo</span>
-      <h2>teste ao vivo</h2>
-      <p>Cole um erro ou código e veja a IA do debugAI em ação.</p>
-    </div>
-
-    <!-- Login Required State -->
-    <div id="demo-locked" class="demo-locked-card">
-      <div class="lock-icon">🔒</div>
-      <h3>acesso necessário</h3>
-      <p>Faça login ou crie uma conta gratuita para usar o demo.</p>
-      <div class="demo-locked-actions">
-        <button onclick="openModal()" class="btn-primary">entrar</button>
-        <button onclick="openModal()" class="btn-secondary">criar conta grátis</button>
-      </div>
-    </div>
-
-    <!-- Demo Unlocked State -->
-    <div id="demo-unlocked" style="display:none;">
-      <div id="demo-stats">
-        <div class="stat-card">
-          <span id="analysis-count">0</span>
-          <p>análises este mês</p>
-        </div>
-        <div class="stat-card">
-          <span id="analysis-limit">20</span>
-          <p>limite do plano</p>
-        </div>
-        <div class="stat-card">
-          <span id="user-plan">Grátis</span>
-          <p>seu plano</p>
-        </div>
-      </div>
-
-      <div class="demo-tabs">
-        <button class="tab active" onclick="switchTab('error')">analisar erro</button>
-        <button class="tab" onclick="switchTab('review')">revisar código</button>
-      </div>
-
-      <!-- Error Analysis Tab -->
-      <div id="tab-error" class="tab-content">
-        <div class="input-group">
-          <label>stack trace / erro</label>
-          <textarea id="error-input" placeholder="Cole o erro ou stack trace aqui..."></textarea>
-        </div>
-
-        <div class="input-group">
-          <label>contexto (opcional)</label>
-          <textarea id="context-input" placeholder="Descreva o que estava fazendo quando o erro apareceu..." style="min-height:80px;"></textarea>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn-analyze" onclick="analyzeError()">🔍 analisar com debugAI</button>
-          <button class="btn-clear" onclick="clearInputs('error')">🗑 limpar campos</button>
-        </div>
-        <p id="error-loading" class="loading-text" style="display:none;">⏳ sua IA analisando o erro...</p>
-
-        <div id="error-result" class="result-card" style="display:none;">
-          <pre id="error-result-text"></pre>
-          <div class="result-actions">
-            <button onclick="copyResult('error')">📋 copiar</button>
-            <button onclick="clearResult('error')">🗑 limpar resultado</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Code Review Tab -->
-      <div id="tab-review" class="tab-content" style="display:none;">
-        <div class="input-group">
-          <label>código para revisão</label>
-          <textarea id="review-input" placeholder="Cole o código que deseja revisar..."></textarea>
-        </div>
-
-        <div class="btn-group">
-          <button class="btn-analyze" onclick="reviewCode()">🔍 revisar com debugAI</button>
-          <button class="btn-clear" onclick="clearInputs('review')">🗑 limpar campos</button>
-        </div>
-        <p id="review-loading" class="loading-text" style="display:none;">⏳ sua IA revisando o código...</p>
-
-        <div id="review-result" class="result-card" style="display:none;">
-          <pre id="review-result-text"></pre>
-          <div class="result-actions">
-            <button onclick="copyResult('review')">📋 copiar</button>
-            <button onclick="clearResult('review')">🗑 limpar resultado</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Histórico -->
-    <div id="history-section" style="display:none; margin-top: 2.5rem;">
-      <div class="history-header">
-        <h3>📋 seu histórico</h3>
-        <button class="btn-clear" onclick="clearAllHistory()">limpar tudo</button>
-      </div>
-      <div id="history-list"></div>
-    </div>
-  </section>
+  <!-- PRICING -->
   <section id="pricing">
     <span class="section-label">planos</span>
     <h2>simples e transparente</h2>
@@ -222,7 +123,7 @@
           <li class="excluded">✗ Histórico ilimitado</li>
           <li class="excluded">✗ Integração GitHub</li>
         </ul>
-        <a href="#demo" class="btn-plan">começar grátis</a>
+        <a href="/app.html" class="btn-plan">começar grátis</a>
       </div>
 
       <div class="pricing-card popular">
