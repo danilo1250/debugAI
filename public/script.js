@@ -286,6 +286,15 @@ function logout() {
   window.location.reload();
 }
 
+function clearInputs(type) {
+  if (type === "error") {
+    document.getElementById("error-input").value = "";
+    document.getElementById("context-input").value = "";
+  } else {
+    document.getElementById("review-input").value = "";
+  }
+}
+
 function copyResult(type) {
   const text = document.getElementById(`${type}-result-text`).textContent;
   navigator.clipboard.writeText(text).then(() => alert("Copiado!"));

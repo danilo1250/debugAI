@@ -156,14 +156,17 @@
           <textarea id="context-input" placeholder="Descreva o que estava fazendo quando o erro apareceu..." style="min-height:80px;"></textarea>
         </div>
 
-        <button class="btn-analyze" onclick="analyzeError()">🔍 analisar com debugAI</button>
+        <div class="btn-group">
+          <button class="btn-analyze" onclick="analyzeError()">🔍 analisar com debugAI</button>
+          <button class="btn-clear" onclick="clearInputs('error')">🗑 limpar campos</button>
+        </div>
         <p id="error-loading" class="loading-text" style="display:none;">⏳ sua IA analisando o erro...</p>
 
         <div id="error-result" class="result-card" style="display:none;">
           <pre id="error-result-text"></pre>
           <div class="result-actions">
             <button onclick="copyResult('error')">📋 copiar</button>
-            <button onclick="clearResult('error')">🗑 limpar</button>
+            <button onclick="clearResult('error')">🗑 limpar resultado</button>
           </div>
         </div>
       </div>
@@ -175,14 +178,17 @@
           <textarea id="review-input" placeholder="Cole o código que deseja revisar..."></textarea>
         </div>
 
-        <button class="btn-analyze" onclick="reviewCode()">🔍 revisar com debugAI</button>
+        <div class="btn-group">
+          <button class="btn-analyze" onclick="reviewCode()">🔍 revisar com debugAI</button>
+          <button class="btn-clear" onclick="clearInputs('review')">🗑 limpar campos</button>
+        </div>
         <p id="review-loading" class="loading-text" style="display:none;">⏳ sua IA revisando o código...</p>
 
         <div id="review-result" class="result-card" style="display:none;">
           <pre id="review-result-text"></pre>
           <div class="result-actions">
             <button onclick="copyResult('review')">📋 copiar</button>
-            <button onclick="clearResult('review')">🗑 limpar</button>
+            <button onclick="clearResult('review')">🗑 limpar resultado</button>
           </div>
         </div>
       </div>
