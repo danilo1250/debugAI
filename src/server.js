@@ -5,6 +5,8 @@ const cors = require("cors");
 const { debugCode } = require("./debug");
 const { router: authRouter, authMiddleware } = require("./auth");
 const paymentsRouter = require("./payments");
+const { db, initDatabase } = require("./database");
+const { canAnalyze, hasFeature, getPlanInfo } = require("./plans");
 
 const app = express();
 
@@ -23,9 +25,7 @@ app.use("/api/auth", authRouter);
 // Rotas de pagamento (checkout, webhook)
 app.use("/api/payments", paymentsRouter);
 
-const db = require("./database");
-const { canAnalyze, hasFeature, getPlanInfo } = require("./plans");
-
+// === API DE DEBUG ===
 app.post("/api/debug", authMiddleware, async (req, res) => {
   const { linguagem, erro, codigo, contexto } = req.body;
 
@@ -34,7 +34,7 @@ app.post("/api/debug", authMiddleware, async (req, res) => {
   }
 
   // Busca usuário no banco
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+  const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
   if (!user) {
     return res.status(404).json({ error: "Usuário não encontrado." });
   }
@@ -52,8 +52,7 @@ app.post("/api/debug", authMiddleware, async (req, res) => {
   const analysis = canAnalyze(user);
 
   if (analysis.needsReset) {
-    // Reseta contador para novo mês
-    db.prepare("UPDATE users SET analysis_count = 0, analysis_reset_date = ? WHERE id = ?")
+    await db.prepare("UPDATE users SET analysis_count = 0, analysis_reset_date = ? WHERE id = ?")
       .run(new Date().toISOString(), user.id);
     user.analysis_count = 0;
   }
@@ -69,11 +68,11 @@ app.post("/api/debug", authMiddleware, async (req, res) => {
     const resultado = await debugCode({ linguagem, erro, codigo, contexto });
 
     // Incrementa contador de análises
-    db.prepare("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = ?").run(user.id);
+    await db.prepare("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = ?").run(user.id);
 
     // Salva no histórico
     const type = isCodeReview ? "review" : "error";
-    db.prepare("INSERT INTO history (user_id, type, input_error, input_code, input_context, response) VALUES (?, ?, ?, ?, ?, ?)")
+    await db.prepare("INSERT INTO history (user_id, type, input_error, input_code, input_context, response) VALUES (?, ?, ?, ?, ?, ?)")
       .run(req.user.id, type, erro, codigo || null, contexto || null, resultado);
 
     res.json({ resultado });
@@ -83,35 +82,41 @@ app.post("/api/debug", authMiddleware, async (req, res) => {
   }
 });
 
-// Rota para pegar info do plano do usuário
-app.get("/api/plan", authMiddleware, (req, res) => {
-  const user = db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+// === INFO DO PLANO ===
+app.get("/api/plan", authMiddleware, async (req, res) => {
+  const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
   if (!user) {
     return res.status(404).json({ error: "Usuário não encontrado." });
   }
   res.json(getPlanInfo(user));
 });
 
-// Rota para pegar histórico do usuário
-app.get("/api/history", authMiddleware, (req, res) => {
-  const history = db.prepare(
+// === HISTÓRICO ===
+app.get("/api/history", authMiddleware, async (req, res) => {
+  const history = await db.prepare(
     "SELECT id, type, input_error, input_code, input_context, response, created_at FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50"
   ).all(req.user.id);
 
   res.json({ history });
 });
 
-// Rota para deletar item do histórico
-app.delete("/api/history/:id", authMiddleware, (req, res) => {
-  const item = db.prepare("SELECT * FROM history WHERE id = ? AND user_id = ?").get(req.params.id, req.user.id);
+app.delete("/api/history/:id", authMiddleware, async (req, res) => {
+  const item = await db.prepare("SELECT * FROM history WHERE id = ? AND user_id = ?").get(parseInt(req.params.id), req.user.id);
   if (!item) {
     return res.status(404).json({ error: "Item não encontrado." });
   }
-  db.prepare("DELETE FROM history WHERE id = ?").run(req.params.id);
+  await db.prepare("DELETE FROM history WHERE id = ?").run(parseInt(req.params.id));
   res.json({ message: "Removido do histórico." });
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`DebugAI rodando em http://localhost:${PORT}`);
-});
+// === INICIA SERVIDOR ===
+async function start() {
+  await initDatabase();
+
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`DebugAI rodando em http://localhost:${PORT}`);
+  });
+}
+
+start();

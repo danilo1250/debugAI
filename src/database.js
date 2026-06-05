@@ -1,49 +1,70 @@
-const Database = require("better-sqlite3");
-const path = require("path");
+const { createClient } = require("@libsql/client");
 
-const db = new Database(path.join(__dirname, "..", "debugai.db"));
+// Se tiver URL do Turso, usa banco na nuvem. Senão, usa arquivo local.
+const isProduction = !!process.env.TURSO_DATABASE_URL;
 
-// Cria a tabela de usuários se não existir
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    plan TEXT DEFAULT 'free',
-    analysis_count INTEGER DEFAULT 0,
-    stripe_customer_id TEXT,
-    created_at TEXT DEFAULT (datetime('now'))
-  )
-`);
+const db = createClient(
+  isProduction
+    ? {
+        url: process.env.TURSO_DATABASE_URL,
+        authToken: process.env.TURSO_AUTH_TOKEN,
+      }
+    : {
+        url: "file:debugai.db",
+      }
+);
 
-// Adiciona coluna stripe_customer_id se a tabela já existia sem ela
-try {
-  db.exec("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT");
-} catch (e) {
-  // Coluna já existe, ignora
+// Inicializa as tabelas
+async function initDatabase() {
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      plan TEXT DEFAULT 'free',
+      analysis_count INTEGER DEFAULT 0,
+      stripe_customer_id TEXT,
+      analysis_reset_date TEXT,
+      created_at TEXT DEFAULT (datetime('now'))
+    )
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS history (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT DEFAULT 'error',
+      input_error TEXT,
+      input_code TEXT,
+      input_context TEXT,
+      response TEXT,
+      created_at TEXT DEFAULT (datetime('now')),
+      FOREIGN KEY (user_id) REFERENCES users(id)
+    )
+  `);
+
+  console.log("✓ Banco de dados inicializado");
 }
 
-// Adiciona coluna de data de reset das análises
-try {
-  db.exec("ALTER TABLE users ADD COLUMN analysis_reset_date TEXT");
-} catch (e) {
-  // Coluna já existe, ignora
-}
+// Helpers para manter compatibilidade com o código existente (que usava better-sqlite3)
+const dbHelper = {
+  prepare(sql) {
+    return {
+      async get(...params) {
+        const result = await db.execute({ sql, args: params });
+        return result.rows[0] || null;
+      },
+      async all(...params) {
+        const result = await db.execute({ sql, args: params });
+        return result.rows;
+      },
+      async run(...params) {
+        const result = await db.execute({ sql, args: params });
+        return { lastInsertRowid: Number(result.lastInsertRowid), changes: result.rowsAffected };
+      },
+    };
+  },
+};
 
-// Tabela de histórico de análises
-db.exec(`
-  CREATE TABLE IF NOT EXISTS history (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL,
-    type TEXT DEFAULT 'error',
-    input_error TEXT,
-    input_code TEXT,
-    input_context TEXT,
-    response TEXT,
-    created_at TEXT DEFAULT (datetime('now')),
-    FOREIGN KEY (user_id) REFERENCES users(id)
-  )
-`);
-
-module.exports = db;
+module.exports = { db: dbHelper, initDatabase };
