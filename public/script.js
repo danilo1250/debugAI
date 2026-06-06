@@ -79,8 +79,11 @@ async function showLoggedInState() {
   const limitEl = document.getElementById("analysis-limit");
   const planEl = document.getElementById("user-plan");
   if (analysisEl) analysisEl.textContent = planInfo ? planInfo.analysisUsed : analysisCount;
-  if (limitEl) limitEl.textContent = planInfo ? planInfo.analysisLimit : "20";
+  if (limitEl) limitEl.textContent = planInfo ? planInfo.analysisLimit : "10";
   if (planEl) planEl.textContent = planInfo ? planInfo.planName : "Grátis";
+
+  // Atualiza barra de progresso
+  updateProgressBar();
 
   // Atualiza header — mostra nome do usuário + link dashboard se Team
   const headerActions = document.getElementById("header-actions");
@@ -230,6 +233,7 @@ async function analyzeError() {
 
   const erro = document.getElementById("error-input").value.trim();
   const contexto = document.getElementById("context-input").value.trim();
+  const linguagem = document.getElementById("language-select") ? document.getElementById("language-select").value : "";
 
   if (!erro) return alert("Cole um erro ou stack trace.");
 
@@ -244,7 +248,7 @@ async function analyzeError() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ erro, contexto }),
+      body: JSON.stringify({ erro, contexto, linguagem }),
     });
 
     const data = await res.json();
@@ -259,10 +263,11 @@ async function analyzeError() {
         alert(data.error);
       }
     } else {
-      document.getElementById("error-result-text").textContent = data.resultado;
+      document.getElementById("error-result-text").innerHTML = renderMarkdown(data.resultado);
       document.getElementById("error-result").style.display = "block";
       analysisCount++;
       document.getElementById("analysis-count").textContent = analysisCount;
+      updateProgressBar();
       loadHistory();
     }
   } catch (err) {
@@ -316,10 +321,11 @@ async function reviewCode() {
         alert(data.error);
       }
     } else {
-      document.getElementById("review-result-text").textContent = data.resultado;
+      document.getElementById("review-result-text").innerHTML = renderMarkdown(data.resultado);
       document.getElementById("review-result").style.display = "block";
       analysisCount++;
       document.getElementById("analysis-count").textContent = analysisCount;
+      updateProgressBar();
       loadHistory();
     }
   } catch (err) {
@@ -339,6 +345,55 @@ function logout() {
   window.location.reload();
 }
 
+function updateProgressBar() {
+  const progressFill = document.getElementById("progress-fill");
+  const progressText = document.getElementById("progress-text");
+  if (!progressFill || !progressText || !planInfo) return;
+
+  const used = planInfo.analysisUsed || 0;
+  const limit = planInfo.analysisLimit;
+
+  if (limit === "ilimitado") {
+    progressText.textContent = `${used} (ilimitado)`;
+    progressFill.style.width = "100%";
+    progressFill.className = "progress-bar-fill";
+  } else {
+    const numLimit = parseInt(limit);
+    const percent = Math.min((used / numLimit) * 100, 100);
+    progressText.textContent = `${used}/${numLimit}`;
+    progressFill.style.width = `${percent}%`;
+
+    if (percent >= 90) progressFill.className = "progress-bar-fill danger";
+    else if (percent >= 70) progressFill.className = "progress-bar-fill warning";
+    else progressFill.className = "progress-bar-fill";
+  }
+}
+
+function renderMarkdown(text) {
+  if (!text) return "";
+  return text
+    // Code blocks (```...```)
+    .replace(/```(\w*)\n([\s\S]*?)```/g, '<pre><code>$2</code></pre>')
+    // Inline code (`...`)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    // Headers
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    // Bold
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    // Lists
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+    // Numbered lists
+    .replace(/^\d+\. (.+)$/gm, '<li>$1</li>')
+    // Paragraphs (double newline)
+    .replace(/\n\n/g, '</p><p>')
+    // Single newline in paragraphs
+    .replace(/\n/g, '<br/>')
+    // Wrap in paragraph
+    .replace(/^(?!<[hupol])(.+)/gm, '<p>$1</p>');
+}
+
 function clearInputs(type) {
   if (type === "error") {
     document.getElementById("error-input").value = "";
@@ -349,12 +404,13 @@ function clearInputs(type) {
 }
 
 function copyResult(type) {
-  const text = document.getElementById(`${type}-result-text`).textContent;
+  const el = document.getElementById(`${type}-result-text`);
+  const text = el.innerText || el.textContent;
   navigator.clipboard.writeText(text).then(() => alert("Copiado!"));
 }
 
 function clearResult(type) {
-  document.getElementById(`${type}-result-text`).textContent = "";
+  document.getElementById(`${type}-result-text`).innerHTML = "";
   document.getElementById(`${type}-result`).style.display = "none";
 }
 

@@ -50,12 +50,23 @@
           <p>análises este mês</p>
         </div>
         <div class="stat-card">
-          <span id="analysis-limit">20</span>
+          <span id="analysis-limit">10</span>
           <p>limite do plano</p>
         </div>
         <div class="stat-card">
           <span id="user-plan">Grátis</span>
           <p>seu plano</p>
+        </div>
+      </div>
+
+      <!-- Barra de progresso -->
+      <div class="progress-bar-container">
+        <div class="progress-bar-label">
+          <span>uso mensal</span>
+          <span id="progress-text">0/10</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
         </div>
       </div>
 
@@ -66,6 +77,29 @@
 
       <!-- Error Analysis Tab -->
       <div id="tab-error" class="tab-content">
+        <div class="input-group">
+          <label>linguagem / framework</label>
+          <select id="language-select">
+            <option value="">detectar automaticamente</option>
+            <option value="javascript">JavaScript</option>
+            <option value="typescript">TypeScript</option>
+            <option value="python">Python</option>
+            <option value="java">Java</option>
+            <option value="csharp">C#</option>
+            <option value="php">PHP</option>
+            <option value="ruby">Ruby</option>
+            <option value="go">Go</option>
+            <option value="rust">Rust</option>
+            <option value="swift">Swift</option>
+            <option value="kotlin">Kotlin</option>
+            <option value="dart">Dart / Flutter</option>
+            <option value="react">React</option>
+            <option value="nextjs">Next.js</option>
+            <option value="node">Node.js</option>
+            <option value="sql">SQL</option>
+          </select>
+        </div>
+
         <div class="input-group">
           <label>stack trace / erro</label>
           <textarea id="error-input" placeholder="Cole o erro ou stack trace aqui..."></textarea>
@@ -83,7 +117,7 @@
         <p id="error-loading" class="loading-text" style="display:none;">⏳ sua IA analisando o erro...</p>
 
         <div id="error-result" class="result-card" style="display:none;">
-          <pre id="error-result-text"></pre>
+          <div id="error-result-text" class="markdown-body"></div>
           <div class="result-actions">
             <button onclick="copyResult('error')">📋 copiar</button>
             <button onclick="clearResult('error')">🗑 limpar resultado</button>
@@ -105,7 +139,7 @@
         <p id="review-loading" class="loading-text" style="display:none;">⏳ sua IA revisando o código...</p>
 
         <div id="review-result" class="result-card" style="display:none;">
-          <pre id="review-result-text"></pre>
+          <div id="review-result-text" class="markdown-body"></div>
           <div class="result-actions">
             <button onclick="copyResult('review')">📋 copiar</button>
             <button onclick="clearResult('review')">🗑 limpar resultado</button>
