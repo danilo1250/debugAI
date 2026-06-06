@@ -89,19 +89,18 @@ router.post("/verify", async (req, res) => {
   }
 
   try {
-    // Busca as sessões recentes do Stripe pro email do usuário
+    // Busca as sessões recentes do Stripe (últimas 10)
     const sessions = await stripe.checkout.sessions.list({
-      customer_details: { email: user.email },
-      limit: 5,
+      limit: 10,
     });
 
     // Procura uma sessão completa com o userId nos metadata
     for (const session of sessions.data) {
       if (session.payment_status === "paid" && session.metadata?.userId === String(userId)) {
         const plan = session.metadata?.plan;
-        if (plan && user.plan !== plan) {
+        if (plan) {
           await db.prepare("UPDATE users SET plan = ?, stripe_customer_id = ? WHERE id = ?")
-            .run(plan, session.customer, userId);
+            .run(plan, session.customer || null, userId);
           return res.json({ updated: true, plan });
         }
       }
