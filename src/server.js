@@ -164,6 +164,12 @@ app.delete("/api/history/:id", authMiddleware, async (req, res) => {
   res.json({ message: "Removido do histórico." });
 });
 
+// Limpa todo o histórico do usuário
+app.delete("/api/history", authMiddleware, async (req, res) => {
+  await db.prepare("DELETE FROM history WHERE user_id = ?").run(req.user.id);
+  res.json({ message: "Histórico limpo." });
+});
+
 // ============================================================
 // === API PRÓPRIA (Feature 1) ===
 // ============================================================

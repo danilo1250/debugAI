@@ -106,7 +106,12 @@ async function showLoggedInState() {
 
 function showUpgradeMessage() {
   alert("⚡ Revisão de código disponível nos planos Pro e Team.\n\nFaça upgrade para desbloquear!");
-  document.getElementById("pricing").scrollIntoView({ behavior: "smooth" });
+  const pricingEl = document.getElementById("pricing");
+  if (pricingEl) {
+    pricingEl.scrollIntoView({ behavior: "smooth" });
+  } else {
+    window.location.href = "/#pricing";
+  }
 }
 
 // === Modal ===
@@ -232,7 +237,9 @@ async function analyzeError() {
     if (!res.ok) {
       if (data.upgrade) {
         alert(data.error + "\n\nClique em 'ver planos' para fazer upgrade.");
-        document.getElementById("pricing").scrollIntoView({ behavior: "smooth" });
+        const pEl = document.getElementById("pricing");
+        if (pEl) pEl.scrollIntoView({ behavior: "smooth" });
+        else window.location.href = "/#pricing";
       } else {
         alert(data.error);
       }
@@ -287,7 +294,9 @@ async function reviewCode() {
     if (!res.ok) {
       if (data.upgrade) {
         alert(data.error + "\n\nClique em 'ver planos' para fazer upgrade.");
-        document.getElementById("pricing").scrollIntoView({ behavior: "smooth" });
+        const pEl = document.getElementById("pricing");
+        if (pEl) pEl.scrollIntoView({ behavior: "smooth" });
+        else window.location.href = "/#pricing";
       } else {
         alert(data.error);
       }
@@ -450,16 +459,10 @@ async function clearAllHistory() {
   if (!confirm("Tem certeza que quer limpar todo o histórico?")) return;
   const token = localStorage.getItem("debugai_token");
   try {
-    const res = await fetch("/api/history", {
+    await fetch("/api/history", {
+      method: "DELETE",
       headers: { Authorization: `Bearer ${token}` },
     });
-    const data = await res.json();
-    for (const item of data.history) {
-      await fetch(`/api/history/${item.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    }
     loadHistory();
   } catch (err) {
     console.error("Erro ao limpar histórico:", err);
