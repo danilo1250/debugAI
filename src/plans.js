@@ -2,12 +2,11 @@
 const PLAN_LIMITS = {
   free: {
     name: "Grátis",
-    analysisPerMonth: 20,
+    analysisPerMonth: 10,
     features: {
       errorAnalysis: true,
       codeReview: false,
       unlimitedHistory: false,
-      githubIntegration: false,
       teamDashboard: false,
       prioritySupport: false,
       apiAccess: false,
@@ -20,7 +19,6 @@ const PLAN_LIMITS = {
       errorAnalysis: true,
       codeReview: true,
       unlimitedHistory: true,
-      githubIntegration: true,
       teamDashboard: false,
       prioritySupport: false,
       apiAccess: false,
@@ -34,7 +32,6 @@ const PLAN_LIMITS = {
       errorAnalysis: true,
       codeReview: true,
       unlimitedHistory: true,
-      githubIntegration: true,
       teamDashboard: true,
       prioritySupport: true,
       apiAccess: true,
