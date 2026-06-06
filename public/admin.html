@@ -320,6 +320,7 @@
               <option value="pro" ${u.plan === 'pro' ? 'selected' : ''}>pro</option>
               <option value="team" ${u.plan === 'team' ? 'selected' : ''}>team</option>
             </select>
+            <button onclick="resetPassword(${u.id}, '${escapeHtml(u.name)}')" title="Resetar senha">🔑</button>
             <button onclick="deleteUser(${u.id})">🗑</button>
           </div>
         </div>
@@ -398,6 +399,22 @@
       });
       loadStats();
       loadTickets();
+    }
+
+    async function resetPassword(userId, userName) {
+      if (!confirm(`Resetar senha de "${userName}"? Uma nova senha temporária será gerada.`)) return;
+      try {
+        const res = await fetch(`/api/admin/users/${userId}/reset-password`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error);
+        alert(`✅ Senha resetada com sucesso!\n\nUsuário: ${data.user.email}\nNova senha temporária: ${data.tempPassword}\n\nInforme ao usuário para trocar a senha após o login.`);
+      } catch (err) {
+        alert("Erro ao resetar senha.");
+        console.error(err);
+      }
     }
 
     function logout() {

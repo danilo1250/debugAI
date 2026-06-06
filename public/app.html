@@ -5,6 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>debugAI — Analisar Código</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    .personal-stats {
+      margin: 1.5rem 0;
+    }
+    .personal-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .personal-stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.2rem;
+      text-align: center;
+      transition: border-color 0.2s;
+    }
+    .personal-stat-card:hover {
+      border-color: var(--accent);
+    }
+    .personal-stat-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .personal-stat-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+    .personal-stat-label {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 0.3rem;
+    }
+    @media (max-width: 768px) {
+      .personal-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
 </head>
 <body>
 
@@ -67,6 +109,32 @@
         </div>
         <div class="progress-bar">
           <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <!-- Stats Pessoais -->
+      <div id="personal-stats" class="personal-stats" style="display:none;">
+        <div class="personal-stats-grid">
+          <div class="personal-stat-card">
+            <div class="personal-stat-icon">🐛</div>
+            <div class="personal-stat-value" id="stat-bugs">0</div>
+            <div class="personal-stat-label">bugs resolvidos</div>
+          </div>
+          <div class="personal-stat-card">
+            <div class="personal-stat-icon">⏱️</div>
+            <div class="personal-stat-value" id="stat-tempo">0 min</div>
+            <div class="personal-stat-label">tempo economizado</div>
+          </div>
+          <div class="personal-stat-card">
+            <div class="personal-stat-icon">💻</div>
+            <div class="personal-stat-value" id="stat-linguagem">N/A</div>
+            <div class="personal-stat-label">linguagem mais usada</div>
+          </div>
+          <div class="personal-stat-card">
+            <div class="personal-stat-icon">🔥</div>
+            <div class="personal-stat-value" id="stat-streak">0 dias</div>
+            <div class="personal-stat-label">streak consecutivo</div>
+          </div>
         </div>
       </div>
 
@@ -197,6 +265,7 @@
 
         <button type="submit" class="btn-submit">entrar</button>
         <p class="modal-footer-text">Não tem conta? <a href="#" onclick="switchModalTab('register')">criar grátis</a></p>
+        <p class="modal-footer-text" id="forgot-password-link"><a href="#" onclick="alert('Entre em contato com o administrador para resetar sua senha.\n\nO admin pode resetar sua senha pelo painel administrativo.')">esqueci minha senha</a></p>
       </form>
     </div>
   </div>

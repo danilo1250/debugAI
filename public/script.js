@@ -120,6 +120,9 @@ async function showLoggedInState() {
 
   // Carrega histórico
   loadHistory();
+
+  // Carrega stats pessoais
+  loadPersonalStats();
 }
 
 function showUpgradeMessage() {
@@ -566,4 +569,33 @@ function formatDate(dateStr) {
 function escapeHtml(text) {
   if (!text) return "";
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// === Stats Pessoais ===
+async function loadPersonalStats() {
+  const token = localStorage.getItem("debugai_token");
+  if (!token) return;
+
+  const statsSection = document.getElementById("personal-stats");
+  if (!statsSection) return;
+
+  try {
+    const res = await fetch("/api/stats/personal", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    statsSection.style.display = "block";
+    document.getElementById("stat-bugs").textContent = data.totalBugs;
+    document.getElementById("stat-tempo").textContent = data.tempoEconomizado >= 60
+      ? `${Math.floor(data.tempoEconomizado / 60)}h ${data.tempoEconomizado % 60}min`
+      : `${data.tempoEconomizado} min`;
+    document.getElementById("stat-linguagem").textContent = data.linguagemMaisUsada;
+    document.getElementById("stat-streak").textContent = `${data.streak} ${data.streak === 1 ? "dia" : "dias"}`;
+  } catch (err) {
+    console.error("Erro ao carregar stats pessoais:", err);
+  }
 }

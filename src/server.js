@@ -469,11 +469,126 @@ app.get("/api/admin/stats", authMiddleware, adminMiddleware, async (req, res) =>
   });
 });
 
+// Reseta senha de um usuário (admin gera senha temporária)
+app.post("/api/admin/users/:id/reset-password", authMiddleware, adminMiddleware, async (req, res) => {
+  const userId = parseInt(req.params.id);
+  const user = await db.prepare("SELECT id, name, email FROM users WHERE id = ?").get(userId);
+  if (!user) {
+    return res.status(404).json({ error: "Usuário não encontrado." });
+  }
+
+  // Gera senha temporária de 8 caracteres
+  const tempPassword = crypto.randomBytes(4).toString("hex"); // 8 chars hex
+  const bcrypt = require("bcryptjs");
+  const hashedPassword = bcrypt.hashSync(tempPassword, 10);
+
+  await db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, userId);
+
+  res.json({ message: "Senha resetada com sucesso.", tempPassword, user: { name: user.name, email: user.email } });
+});
+
 // Verifica se é admin
 app.get("/api/admin/check", authMiddleware, (req, res) => {
   const adminEmail = process.env.ADMIN_EMAIL;
   const isAdmin = adminEmail && req.user.email === adminEmail;
   res.json({ isAdmin });
+});
+
+// ============================================================
+// === STATS PESSOAIS ===
+// ============================================================
+
+app.get("/api/stats/personal", authMiddleware, async (req, res) => {
+  try {
+    // Total bugs resolvidos (total de itens no histórico)
+    const totalResult = await db.prepare("SELECT COUNT(*) as total FROM history WHERE user_id = ?").get(req.user.id);
+    const totalBugs = totalResult ? totalResult.total : 0;
+
+    // Tempo economizado (estimativa: 3 min por análise)
+    const tempoEconomizado = totalBugs * 3;
+
+    // Linguagem mais usada (extraída do input_error ou input_code — usamos o campo que mais aparece)
+    const linguagemResult = await db.prepare(
+      "SELECT input_error, input_code FROM history WHERE user_id = ? AND input_error IS NOT NULL"
+    ).all(req.user.id);
+
+    // Tenta detectar linguagens por keywords comuns nos erros
+    const langCounts = {};
+    const langKeywords = {
+      "JavaScript": ["TypeError", "ReferenceError", "undefined is not", "Cannot read prop", "node_modules", ".js:", "const ", "let ", "var "],
+      "Python": ["Traceback", "IndentationError", "NameError", "ImportError", ".py", "def ", "self."],
+      "TypeScript": [".ts:", "Type '", "is not assignable", "interface ", "TSError"],
+      "Java": [".java:", "NullPointerException", "ClassNotFoundException", "public class"],
+      "PHP": ["Fatal error", ".php:", "Undefined variable", "<?php"],
+      "C#": [".cs:", "NullReferenceException", "System.", "namespace "],
+      "Ruby": [".rb:", "NoMethodError", "undefined method"],
+      "Go": [".go:", "panic:", "goroutine"],
+      "React": ["jsx", "useState", "useEffect", "Component", "React"],
+      "SQL": ["SELECT", "INSERT", "UPDATE", "DELETE", "FROM", "WHERE"],
+    };
+
+    for (const item of linguagemResult) {
+      const text = (item.input_error || "") + " " + (item.input_code || "");
+      for (const [lang, keywords] of Object.entries(langKeywords)) {
+        for (const kw of keywords) {
+          if (text.includes(kw)) {
+            langCounts[lang] = (langCounts[lang] || 0) + 1;
+            break;
+          }
+        }
+      }
+    }
+
+    let linguagemMaisUsada = "N/A";
+    let maxCount = 0;
+    for (const [lang, count] of Object.entries(langCounts)) {
+      if (count > maxCount) {
+        maxCount = count;
+        linguagemMaisUsada = lang;
+      }
+    }
+
+    // Streak: dias consecutivos usando (contando para trás a partir de hoje)
+    const daysResult = await db.prepare(
+      "SELECT DISTINCT DATE(created_at) as day FROM history WHERE user_id = ? ORDER BY day DESC"
+    ).all(req.user.id);
+
+    let streak = 0;
+    if (daysResult && daysResult.length > 0) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      // Verifica se usou hoje ou ontem pra iniciar o streak
+      const lastDay = new Date(daysResult[0].day);
+      lastDay.setHours(0, 0, 0, 0);
+      
+      const diffFromToday = Math.floor((today - lastDay) / (1000 * 60 * 60 * 24));
+      
+      if (diffFromToday <= 1) {
+        streak = 1;
+        for (let i = 1; i < daysResult.length; i++) {
+          const prevDay = new Date(daysResult[i - 1].day);
+          const currDay = new Date(daysResult[i].day);
+          const diff = Math.floor((prevDay - currDay) / (1000 * 60 * 60 * 24));
+          if (diff === 1) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    res.json({
+      totalBugs,
+      tempoEconomizado,
+      linguagemMaisUsada,
+      streak,
+    });
+  } catch (err) {
+    console.error("Erro ao buscar stats pessoais:", err);
+    res.status(500).json({ error: "Erro ao buscar estatísticas." });
+  }
 });
 
 // === INICIA SERVIDOR ===
