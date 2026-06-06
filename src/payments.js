@@ -48,29 +48,15 @@ router.post("/checkout", async (req, res) => {
   }
 
   try {
-    let session;
-    try {
-      session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "subscription",
-        customer_email: user.email,
-        line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
-        metadata: { userId: String(userId), plan },
-        success_url: `${process.env.BASE_URL || "http://localhost:3000"}/?payment=success`,
-        cancel_url: `${process.env.BASE_URL || "http://localhost:3000"}/?payment=cancel`,
-      });
-    } catch (subErr) {
-      console.log("Tentando como payment:", subErr.message);
-      session = await stripe.checkout.sessions.create({
-        payment_method_types: ["card"],
-        mode: "payment",
-        customer_email: user.email,
-        line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
-        metadata: { userId: String(userId), plan },
-        success_url: `${process.env.BASE_URL || "http://localhost:3000"}/?payment=success`,
-        cancel_url: `${process.env.BASE_URL || "http://localhost:3000"}/?payment=cancel`,
-      });
-    }
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "subscription",
+      customer_email: user.email,
+      line_items: [{ price: PLANS[plan].priceId, quantity: 1 }],
+      metadata: { userId: String(userId), plan },
+      success_url: `${process.env.BASE_URL || "http://localhost:3000"}/?payment=success`,
+      cancel_url: `${process.env.BASE_URL || "http://localhost:3000"}/?payment=cancel`,
+    });
 
     res.json({ url: session.url });
   } catch (err) {
