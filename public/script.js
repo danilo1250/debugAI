@@ -378,14 +378,32 @@ async function subscribePlan(plan) {
 }
 
 // === Verifica se voltou do pagamento ===
-(function checkPaymentReturn() {
+(async function checkPaymentReturn() {
   const params = new URLSearchParams(window.location.search);
   if (params.get("payment") === "success") {
-    alert("🎉 Pagamento confirmado! Seu plano foi atualizado.");
-    window.history.replaceState({}, "", "/");
+    const token = localStorage.getItem("debugai_token");
+    if (token) {
+      // Verifica e atualiza o plano no servidor
+      try {
+        const res = await fetch("/api/payments/verify", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (data.updated) {
+          alert(`🎉 Pagamento confirmado! Seu plano foi atualizado para ${data.plan.toUpperCase()}.`);
+        } else {
+          alert("🎉 Pagamento recebido! Seu plano será atualizado em instantes.");
+        }
+      } catch (e) {
+        alert("🎉 Pagamento confirmado! Recarregue a página em alguns segundos.");
+      }
+    }
+    window.history.replaceState({}, "", window.location.pathname);
+    window.location.reload();
   } else if (params.get("payment") === "cancel") {
     alert("Pagamento cancelado. Você pode tentar novamente.");
-    window.history.replaceState({}, "", "/");
+    window.history.replaceState({}, "", window.location.pathname);
   }
 })();
 

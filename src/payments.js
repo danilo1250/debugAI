@@ -65,6 +65,55 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
+// === VERIFICAR PAGAMENTO (chamado quando o usuário volta do Stripe) ===
+router.post("/verify", async (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ error: "Não autorizado." });
+  }
+
+  const jwt = require("jsonwebtoken");
+  const JWT_SECRET = process.env.JWT_SECRET || "debugai-secret-key-change-me";
+
+  let userId;
+  try {
+    const decoded = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET);
+    userId = decoded.id;
+  } catch {
+    return res.status(401).json({ error: "Token inválido." });
+  }
+
+  const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+  if (!user) {
+    return res.status(404).json({ error: "Usuário não encontrado." });
+  }
+
+  try {
+    // Busca as sessões recentes do Stripe pro email do usuário
+    const sessions = await stripe.checkout.sessions.list({
+      customer_details: { email: user.email },
+      limit: 5,
+    });
+
+    // Procura uma sessão completa com o userId nos metadata
+    for (const session of sessions.data) {
+      if (session.payment_status === "paid" && session.metadata?.userId === String(userId)) {
+        const plan = session.metadata?.plan;
+        if (plan && user.plan !== plan) {
+          await db.prepare("UPDATE users SET plan = ?, stripe_customer_id = ? WHERE id = ?")
+            .run(plan, session.customer, userId);
+          return res.json({ updated: true, plan });
+        }
+      }
+    }
+
+    res.json({ updated: false });
+  } catch (err) {
+    console.error("Erro ao verificar pagamento:", err.message);
+    res.json({ updated: false });
+  }
+});
+
 // === WEBHOOK DO STRIPE ===
 router.post("/webhook", express.raw({ type: "application/json" }), async (req, res) => {
   const sig = req.headers["stripe-signature"];
