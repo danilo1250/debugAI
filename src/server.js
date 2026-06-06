@@ -37,19 +37,19 @@ app.use(cors({
   credentials: true,
 }));
 
-// Rate limiting geral - 100 req por 15 min por IP
+// Rate limiting geral - 200 req por 15 min por IP
 const generalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 200,
   message: { error: "Muitas requisições. Tente novamente em alguns minutos." },
   standardHeaders: true,
   legacyHeaders: false,
 });
 
-// Rate limiting para auth - 10 tentativas por 15 min (previne brute force)
+// Rate limiting para auth - 30 tentativas por 15 min (previne brute force)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 10,
+  max: 30,
   message: { error: "Muitas tentativas de login. Aguarde 15 minutos." },
   standardHeaders: true,
   legacyHeaders: false,
