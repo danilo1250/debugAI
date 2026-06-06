@@ -30,6 +30,21 @@ async function fetchUser(token) {
       currentUser = data.user;
       isLoggedIn = true;
       analysisCount = currentUser.analysis_count;
+
+      // Verifica se tem pagamento pendente pra atualizar o plano
+      if (currentUser.plan === "free") {
+        try {
+          const verifyRes = await fetch("/api/payments/verify", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyData.updated) {
+            currentUser.plan = verifyData.plan;
+          }
+        } catch (e) {}
+      }
+
       await fetchPlanInfo(token);
       await showLoggedInState();
     } else {

@@ -89,27 +89,31 @@ router.post("/verify", async (req, res) => {
   }
 
   try {
-    // Busca as sessões recentes do Stripe (últimas 10)
-    const sessions = await stripe.checkout.sessions.list({
-      limit: 10,
-    });
+    // Busca as sessões recentes do Stripe
+    const sessions = await stripe.checkout.sessions.list({ limit: 20 });
+
+    console.log(`[verify] Buscando pagamento para user ${userId} (${user.email}). Sessões encontradas: ${sessions.data.length}`);
 
     // Procura uma sessão completa com o userId nos metadata
     for (const session of sessions.data) {
+      console.log(`[verify] Sessão ${session.id}: status=${session.payment_status}, metadata=${JSON.stringify(session.metadata)}`);
+      
       if (session.payment_status === "paid" && session.metadata?.userId === String(userId)) {
         const plan = session.metadata?.plan;
         if (plan) {
           await db.prepare("UPDATE users SET plan = ?, stripe_customer_id = ? WHERE id = ?")
             .run(plan, session.customer || null, userId);
+          console.log(`[verify] ✓ Plano atualizado para ${plan} (user ${userId})`);
           return res.json({ updated: true, plan });
         }
       }
     }
 
+    console.log(`[verify] Nenhum pagamento encontrado para user ${userId}`);
     res.json({ updated: false });
   } catch (err) {
     console.error("Erro ao verificar pagamento:", err.message);
-    res.json({ updated: false });
+    res.json({ updated: false, error: err.message });
   }
 });
 
