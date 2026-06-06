@@ -484,6 +484,43 @@
         <div class="api-keys-list" id="api-keys-list">
           <p class="empty-state">Carregando...</p>
         </div>
+
+        <!-- Documentação da API -->
+        <div style="margin-top: 1.5rem; padding-top: 1.2rem; border-top: 1px solid var(--border);">
+          <h4 style="font-size: 0.82rem; color: var(--text-primary); margin-bottom: 0.8rem;">📖 Como usar a API</h4>
+          <p style="font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 0.8rem;">Endpoint: <code style="background:var(--bg-secondary);padding:0.2rem 0.5rem;border-radius:4px;font-size:0.72rem;">POST /api/v1/analyze</code></p>
+          
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">Exemplo com cURL:</p>
+          <pre style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:0.8rem;font-size:0.7rem;color:var(--text-secondary);overflow-x:auto;white-space:pre-wrap;margin-bottom:1rem;line-height:1.7;">curl -X POST https://debugai-uhqi.onrender.com/api/v1/analyze \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: SUA_CHAVE_AQUI" \
+  -d '{"erro": "TypeError: Cannot read properties of undefined", "codigo": "const x = user.name", "contexto": "opcional"}'</pre>
+
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">Exemplo com JavaScript:</p>
+          <pre style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:0.8rem;font-size:0.7rem;color:var(--text-secondary);overflow-x:auto;white-space:pre-wrap;margin-bottom:1rem;line-height:1.7;">const res = await fetch("https://debugai-uhqi.onrender.com/api/v1/analyze", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "SUA_CHAVE_AQUI"
+  },
+  body: JSON.stringify({
+    erro: "TypeError: Cannot read properties of undefined",
+    codigo: "const x = user.name",
+    contexto: "Tentando acessar nome do usuário"
+  })
+});
+const data = await res.json();
+console.log(data.resultado);</pre>
+
+          <p style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.5px;">Exemplo com Python:</p>
+          <pre style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:0.8rem;font-size:0.7rem;color:var(--text-secondary);overflow-x:auto;white-space:pre-wrap;line-height:1.7;">import requests
+
+res = requests.post("https://debugai-uhqi.onrender.com/api/v1/analyze",
+  headers={"X-API-Key": "SUA_CHAVE_AQUI"},
+  json={"erro": "KeyError: 'name'", "codigo": "print(user['name'])"}
+)
+print(res.json()["resultado"])</pre>
+        </div>
       </div>
 
       <!-- Team Members -->
