@@ -312,12 +312,6 @@ app.post("/api/debug/upload", debugLimiter, authMiddleware, upload.single("file"
   const contexto = req.body.contexto || "";
   const linguagem = path.extname(req.file.originalname).replace(".", "");
 
-  // Busca usuário
-  const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
-  if (!user) {
-    return res.status(404).json({ error: "Usuário não encontrado." });
-  }
-
   // Verifica limite de análises
   const analysis = canAnalyze(user);
 
