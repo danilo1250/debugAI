@@ -170,6 +170,18 @@ app.post("/api/debug", debugLimiter, authMiddleware, async (req, res) => {
     // Incrementa contador de análises
     await db.prepare("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = ?").run(user.id);
 
+    // === REFERRAL: credita bônus ao referenciador na PRIMEIRA análise do convidado ===
+    // Só credita uma vez (referral_credited), e se o usuário foi realmente convidado
+    if (user.referred_by && !user.referral_credited) {
+      // Teto máximo de bônus: 50 análises (10 convidados)
+      const referrer = await db.prepare("SELECT bonus_analyses FROM users WHERE id = ?").get(user.referred_by);
+      if (referrer && (referrer.bonus_analyses || 0) < 50) {
+        await db.prepare("UPDATE users SET bonus_analyses = bonus_analyses + 5 WHERE id = ?").run(user.referred_by);
+      }
+      // Marca como creditado pra não dar bônus de novo
+      await db.prepare("UPDATE users SET referral_credited = 1 WHERE id = ?").run(user.id);
+    }
+
     // Salva no histórico
     const type = isCodeReview ? "review" : "error";
     await db.prepare("INSERT INTO history (user_id, type, input_error, input_code, input_context, response) VALUES (?, ?, ?, ?, ?, ?)")

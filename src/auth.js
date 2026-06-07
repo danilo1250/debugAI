@@ -71,10 +71,8 @@ router.post("/register", async (req, res) => {
       "INSERT INTO users (name, email, password, referral_code, referred_by) VALUES (?, ?, ?, ?, ?)"
     ).run(cleanName, cleanEmail, hashedPassword, newReferralCode, referrerId);
 
-    // Se foi referido, dá +5 bônus de análises ao referenciador
-    if (referrerId) {
-      await db.prepare("UPDATE users SET bonus_analyses = bonus_analyses + 5 WHERE id = ?").run(referrerId);
-    }
+    // NOTA: o bônus NÃO é creditado aqui. Só é creditado quando o convidado
+    // faz a primeira análise (ver /api/debug no server.js), pra evitar farm de contas falsas.
 
     // Gera token JWT
     const token = jwt.sign({ id: result.lastInsertRowid, email: cleanEmail, name: cleanName }, JWT_SECRET, {
