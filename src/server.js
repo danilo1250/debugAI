@@ -276,7 +276,7 @@ app.get("/api/shared/:shareId", async (req, res) => {
 // Configuração do multer
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 50 * 1024 }, // 50KB
+  limits: { fileSize: 200 * 1024 }, // 200KB (Pro/Team), validação extra no handler
   fileFilter: (req, file, cb) => {
     const allowedExtensions = [".js", ".ts", ".py", ".java", ".php", ".rb", ".go", ".rs", ".cs", ".txt"];
     const ext = path.extname(file.originalname).toLowerCase();
@@ -292,6 +292,19 @@ const upload = multer({
 app.post("/api/debug/upload", debugLimiter, authMiddleware, upload.single("file"), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: "Nenhum arquivo enviado." });
+  }
+
+  // Busca usuário pra verificar limite por plano
+  const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+  if (!user) {
+    return res.status(404).json({ error: "Usuário não encontrado." });
+  }
+
+  // Limite de tamanho por plano: Free = 50KB, Pro/Team = 200KB
+  const maxSize = (user.plan === "pro" || user.plan === "team") ? 200 * 1024 : 50 * 1024;
+  if (req.file.size > maxSize) {
+    const limitLabel = (user.plan === "free") ? "50KB (plano Grátis)" : "200KB";
+    return res.status(400).json({ error: `Arquivo muito grande. Limite: ${limitLabel}. Faça upgrade para enviar arquivos maiores.` });
   }
 
   const codigo = req.file.buffer.toString("utf-8");

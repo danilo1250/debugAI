@@ -921,8 +921,8 @@ function setUploadedFile(file) {
     return;
   }
 
-  if (file.size > 50 * 1024) {
-    alert("Arquivo muito grande. Limite: 50KB.");
+  if (file.size > 200 * 1024) {
+    alert("Arquivo muito grande. Limite máximo: 200KB.");
     return;
   }
 
