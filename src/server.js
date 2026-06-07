@@ -10,6 +10,7 @@ const { router: authRouter, authMiddleware } = require("./auth");
 const paymentsRouter = require("./payments");
 const { db, initDatabase } = require("./database");
 const { canAnalyze, hasFeature, getPlanInfo } = require("./plans");
+const multer = require("multer");
 
 const app = express();
 
@@ -120,7 +121,7 @@ app.use("/api/payments", paymentsRouter);
 
 // === API DE DEBUG ===
 app.post("/api/debug", debugLimiter, authMiddleware, async (req, res) => {
-  const { linguagem, erro, codigo, contexto } = req.body;
+  const { linguagem, erro, codigo, contexto, model } = req.body;
 
   if (!erro) {
     return res.status(400).json({ error: "Campo 'erro' é obrigatório." });
@@ -141,6 +142,12 @@ app.post("/api/debug", debugLimiter, authMiddleware, async (req, res) => {
     });
   }
 
+  // Determina modelo — "detailed" só para Pro/Team
+  let selectedModel = "fast";
+  if (model === "detailed" && (user.plan === "pro" || user.plan === "team")) {
+    selectedModel = "detailed";
+  }
+
   // Verifica limite de análises do mês
   const analysis = canAnalyze(user);
 
@@ -158,7 +165,7 @@ app.post("/api/debug", debugLimiter, authMiddleware, async (req, res) => {
   }
 
   try {
-    const resultado = await debugCode({ linguagem, erro, codigo, contexto });
+    const resultado = await debugCode({ linguagem, erro, codigo, contexto, model: selectedModel });
 
     // Incrementa contador de análises
     await db.prepare("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = ?").run(user.id);
@@ -226,6 +233,123 @@ app.delete("/api/history/:id", authMiddleware, async (req, res) => {
 app.delete("/api/history", authMiddleware, async (req, res) => {
   await db.prepare("DELETE FROM history WHERE user_id = ?").run(req.user.id);
   res.json({ message: "Histórico limpo." });
+});
+
+// ============================================================
+// === COMPARTILHAR ANÁLISE (Feature: Share Link) ===
+// ============================================================
+
+// Gera link de compartilhamento para um item do histórico
+app.post("/api/history/:id/share", authMiddleware, async (req, res) => {
+  const item = await db.prepare("SELECT * FROM history WHERE id = ? AND user_id = ?").get(parseInt(req.params.id), req.user.id);
+  if (!item) {
+    return res.status(404).json({ error: "Item não encontrado." });
+  }
+
+  // Se já tem share_id, retorna o mesmo
+  if (item.share_id) {
+    const baseUrl = process.env.BASE_URL || "https://debugai-uhqi.onrender.com";
+    return res.json({ shareUrl: `${baseUrl}/shared.html?id=${item.share_id}`, shareId: item.share_id });
+  }
+
+  // Gera share_id único (8 chars hex)
+  const shareId = crypto.randomBytes(4).toString("hex");
+  await db.prepare("UPDATE history SET share_id = ? WHERE id = ?").run(shareId, parseInt(req.params.id));
+
+  const baseUrl = process.env.BASE_URL || "https://debugai-uhqi.onrender.com";
+  res.json({ shareUrl: `${baseUrl}/shared.html?id=${shareId}`, shareId });
+});
+
+// Rota pública para visualizar análise compartilhada (sem auth)
+app.get("/api/shared/:shareId", async (req, res) => {
+  const item = await db.prepare("SELECT input_error, response, type, created_at FROM history WHERE share_id = ?").get(req.params.shareId);
+  if (!item) {
+    return res.status(404).json({ error: "Análise não encontrada ou link inválido." });
+  }
+  res.json(item);
+});
+
+// ============================================================
+// === UPLOAD DE ARQUIVO (Feature: File Upload) ===
+// ============================================================
+
+// Configuração do multer
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 }, // 50KB
+  fileFilter: (req, file, cb) => {
+    const allowedExtensions = [".js", ".ts", ".py", ".java", ".php", ".rb", ".go", ".rs", ".cs", ".txt"];
+    const ext = path.extname(file.originalname).toLowerCase();
+    if (allowedExtensions.includes(ext)) {
+      cb(null, true);
+    } else {
+      cb(new Error("Tipo de arquivo não permitido. Envie arquivos: " + allowedExtensions.join(", ")));
+    }
+  },
+});
+
+// Upload de arquivo para análise
+app.post("/api/debug/upload", debugLimiter, authMiddleware, upload.single("file"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ error: "Nenhum arquivo enviado." });
+  }
+
+  const codigo = req.file.buffer.toString("utf-8");
+  const erro = req.body.erro || "Análise de arquivo enviado";
+  const contexto = req.body.contexto || "";
+  const linguagem = path.extname(req.file.originalname).replace(".", "");
+
+  // Busca usuário
+  const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+  if (!user) {
+    return res.status(404).json({ error: "Usuário não encontrado." });
+  }
+
+  // Verifica limite de análises
+  const analysis = canAnalyze(user);
+
+  if (analysis.needsReset) {
+    await db.prepare("UPDATE users SET analysis_count = 0, analysis_reset_date = ? WHERE id = ?")
+      .run(new Date().toISOString(), user.id);
+    user.analysis_count = 0;
+  }
+
+  if (!analysis.allowed) {
+    return res.status(429).json({
+      error: "Você atingiu o limite de análises deste mês. Faça upgrade para o plano Pro para análises ilimitadas.",
+      upgrade: true,
+    });
+  }
+
+  try {
+    const resultado = await debugCode({ linguagem, erro, codigo, contexto, model: "fast" });
+
+    // Incrementa contador
+    await db.prepare("UPDATE users SET analysis_count = analysis_count + 1 WHERE id = ?").run(user.id);
+
+    // Salva no histórico
+    await db.prepare("INSERT INTO history (user_id, type, input_error, input_code, input_context, response) VALUES (?, ?, ?, ?, ?, ?)")
+      .run(req.user.id, "error", erro, codigo, contexto || null, resultado);
+
+    res.json({ resultado });
+  } catch (err) {
+    console.error("Erro no upload:", err.message || err);
+    res.status(500).json({ error: "Erro ao analisar arquivo: " + (err.message || "erro desconhecido") });
+  }
+});
+
+// Middleware de erro do multer
+app.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError) {
+    if (err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ error: "Arquivo muito grande. Limite: 50KB." });
+    }
+    return res.status(400).json({ error: "Erro no upload: " + err.message });
+  }
+  if (err && err.message && err.message.includes("Tipo de arquivo")) {
+    return res.status(400).json({ error: err.message });
+  }
+  next(err);
 });
 
 // ============================================================

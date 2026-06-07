@@ -22,7 +22,13 @@ Estrutura obrigatória de toda resposta:
 ## Cuidados relacionados
 [1-3 dicas sobre erros similares]`;
 
-async function debugCode({ linguagem, erro, codigo, contexto }) {
+// Mapeamento de modelos disponíveis
+const MODELS = {
+  fast: "llama-3.3-70b-versatile",
+  detailed: "llama-3.1-70b-versatile",
+};
+
+async function debugCode({ linguagem, erro, codigo, contexto, model }) {
   const userMessage = `
 **Linguagem/Framework:** ${linguagem || "não especificada"}
 
@@ -40,8 +46,10 @@ ${codigo || "Não fornecido"}
 ${contexto || "Nenhum contexto adicional."}
   `.trim();
 
+  const selectedModel = MODELS[model] || MODELS.fast;
+
   const response = await client.chat.completions.create({
-    model: "llama-3.3-70b-versatile",
+    model: selectedModel,
     max_tokens: 1024,
     messages: [
       { role: "system", content: SYSTEM_PROMPT },

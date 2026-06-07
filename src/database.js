@@ -41,6 +41,9 @@ async function initDatabase() {
   // Migração: coluna de favorito no histórico
   try { await db.execute("ALTER TABLE history ADD COLUMN is_favorite INTEGER DEFAULT 0"); } catch (e) {}
 
+  // Migração: coluna de share_id no histórico (Feature: Compartilhar Análise)
+  try { await db.execute("ALTER TABLE history ADD COLUMN share_id TEXT"); } catch (e) {}
+
   await db.execute(`
     CREATE TABLE IF NOT EXISTS history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

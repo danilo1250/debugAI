@@ -95,6 +95,69 @@
       border-color: #ffd700;
       color: #ffd700;
     }
+
+    /* Model Selector */
+    .model-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .model-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.5rem 1.1rem;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .model-pill:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+    .model-pill.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 600;
+    }
+    .model-lock {
+      font-size: 0.7rem;
+    }
+
+    /* File Upload Area */
+    .file-upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      background: var(--bg-card);
+    }
+    .file-upload-area:hover,
+    .file-upload-area.dragover {
+      border-color: var(--accent);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .file-upload-area p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+    .file-upload-area .file-upload-hint {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .file-upload-area.has-file {
+      border-color: var(--success, #10b981);
+      background: rgba(16, 185, 129, 0.05);
+    }
+    .btn-upload-analyze {
+      background: var(--success, #10b981) !important;
+    }
   </style>
 </head>
 <body>
@@ -218,6 +281,15 @@
           </select>
         </div>
 
+        <!-- Model Selector -->
+        <div class="input-group">
+          <label>modelo de IA</label>
+          <div class="model-selector">
+            <button type="button" class="model-pill active" data-model="fast" onclick="selectModel('fast')">⚡ rápido</button>
+            <button type="button" class="model-pill" data-model="detailed" onclick="selectModel('detailed')">🧠 detalhado <span class="model-lock" id="model-lock">🔒</span></button>
+          </div>
+        </div>
+
         <div class="input-group">
           <label>stack trace / erro</label>
           <textarea id="error-input" placeholder="Cole o erro ou stack trace aqui..."></textarea>
@@ -228,8 +300,19 @@
           <textarea id="context-input" placeholder="Descreva o que estava fazendo quando o erro apareceu..." style="min-height:80px;"></textarea>
         </div>
 
+        <!-- File Upload Area -->
+        <div class="input-group">
+          <label>upload de arquivo (opcional)</label>
+          <div class="file-upload-area" id="file-upload-area" onclick="document.getElementById('file-input').click()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <input type="file" id="file-input" accept=".js,.ts,.py,.java,.php,.rb,.go,.rs,.cs,.txt" style="display:none;" onchange="handleFileSelect(event)" />
+            <p id="file-upload-text">📁 arraste um arquivo aqui ou <strong>escolha arquivo</strong></p>
+            <p class="file-upload-hint">Aceita: .js, .ts, .py, .java, .php, .rb, .go, .rs, .cs, .txt (max 50KB)</p>
+          </div>
+        </div>
+
         <div class="btn-group">
           <button class="btn-analyze" onclick="analyzeError()">🔍 analisar com debugAI</button>
+          <button class="btn-analyze btn-upload-analyze" id="btn-upload-analyze" onclick="uploadFile()" style="display:none;">📤 analisar arquivo</button>
           <button class="btn-clear" onclick="clearInputs('error')">🗑 limpar campos</button>
         </div>
         <p id="error-loading" class="loading-text" style="display:none;">⏳ sua IA analisando o erro...</p>

@@ -4,6 +4,8 @@ let authMode = "login";
 let analysisCount = 0;
 let currentUser = null;
 let planInfo = null;
+let selectedModel = "fast";
+let uploadedFile = null;
 
 // === Theme Toggle ===
 function toggleTheme() {
@@ -174,6 +176,9 @@ async function showLoggedInState() {
   // Carrega dados de referral
   loadReferral();
 
+  // Atualiza lock do model selector
+  updateModelLock();
+
   // Mostra seção de conta
   const accountSection = document.getElementById("account-section");
   if (accountSection) {
@@ -300,6 +305,7 @@ async function analyzeError() {
   const erro = document.getElementById("error-input").value.trim();
   const contexto = document.getElementById("context-input").value.trim();
   const linguagem = document.getElementById("language-select") ? document.getElementById("language-select").value : "";
+  const model = selectedModel || "fast";
 
   if (!erro) return alert("Cole um erro ou stack trace.");
 
@@ -314,7 +320,7 @@ async function analyzeError() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ erro, contexto, linguagem }),
+      body: JSON.stringify({ erro, contexto, linguagem, model }),
     });
 
     const data = await res.json();
@@ -464,6 +470,7 @@ function clearInputs(type) {
   if (type === "error") {
     document.getElementById("error-input").value = "";
     document.getElementById("context-input").value = "";
+    resetFileUpload();
   } else {
     document.getElementById("review-input").value = "";
   }
@@ -581,6 +588,7 @@ async function loadHistory() {
         <div class="history-item-input">${escapeHtml(item.input_error)}</div>
         <div class="history-item-actions">
           <button class="btn-favorite ${item.is_favorite ? 'active' : ''}" onclick="toggleFavorite(${item.id}, this)">⭐</button>
+          <button onclick="shareHistoryItem(${item.id})">🔗 compartilhar</button>
           <button onclick="toggleResponse(${index})">👁 ver resposta</button>
           <button onclick="copyHistoryResponse(${index})">📋 copiar</button>
           <button onclick="deleteHistoryItem(${item.id})">🗑 remover</button>
@@ -816,4 +824,184 @@ async function cancelSubscription() {
     console.error("Erro ao cancelar assinatura:", err);
     alert("Erro ao conectar com o servidor.");
   }
+}
+
+
+// === Model Selector ===
+function selectModel(model) {
+  // Se tentar selecionar "detailed" e não é Pro/Team, avisa
+  if (model === "detailed" && planInfo && planInfo.plan === "free") {
+    alert("⚡ Modelo detalhado disponível apenas nos planos Pro e Team.\n\nFaça upgrade para desbloquear!");
+    return;
+  }
+
+  selectedModel = model;
+  const pills = document.querySelectorAll(".model-pill");
+  pills.forEach(p => {
+    p.classList.toggle("active", p.dataset.model === model);
+  });
+}
+
+// Atualiza visibilidade do lock no model selector
+function updateModelLock() {
+  const lockEl = document.getElementById("model-lock");
+  if (!lockEl) return;
+  if (planInfo && (planInfo.plan === "pro" || planInfo.plan === "team")) {
+    lockEl.style.display = "none";
+  } else {
+    lockEl.style.display = "inline";
+  }
+}
+
+// === Compartilhar Análise ===
+async function shareHistoryItem(id) {
+  const token = localStorage.getItem("debugai_token");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`/api/history/${id}/share`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) {
+      const data = await res.json();
+      return alert(data.error || "Erro ao compartilhar.");
+    }
+
+    const data = await res.json();
+    navigator.clipboard.writeText(data.shareUrl).then(() => {
+      alert("🔗 Link copiado para a área de transferência!\n\n" + data.shareUrl);
+    }).catch(() => {
+      prompt("Copie o link:", data.shareUrl);
+    });
+  } catch (err) {
+    console.error("Erro ao compartilhar:", err);
+    alert("Erro ao gerar link de compartilhamento.");
+  }
+}
+
+// === Upload de Arquivo ===
+function handleDragOver(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById("file-upload-area").classList.add("dragover");
+}
+
+function handleDragLeave(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById("file-upload-area").classList.remove("dragover");
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  document.getElementById("file-upload-area").classList.remove("dragover");
+
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    setUploadedFile(files[0]);
+  }
+}
+
+function handleFileSelect(e) {
+  const files = e.target.files;
+  if (files.length > 0) {
+    setUploadedFile(files[0]);
+  }
+}
+
+function setUploadedFile(file) {
+  const allowedExtensions = [".js", ".ts", ".py", ".java", ".php", ".rb", ".go", ".rs", ".cs", ".txt"];
+  const ext = "." + file.name.split(".").pop().toLowerCase();
+
+  if (!allowedExtensions.includes(ext)) {
+    alert("Tipo de arquivo não permitido. Envie: " + allowedExtensions.join(", "));
+    return;
+  }
+
+  if (file.size > 50 * 1024) {
+    alert("Arquivo muito grande. Limite: 50KB.");
+    return;
+  }
+
+  uploadedFile = file;
+  const area = document.getElementById("file-upload-area");
+  const text = document.getElementById("file-upload-text");
+  area.classList.add("has-file");
+  text.innerHTML = `✅ <strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)}KB)`;
+  document.getElementById("btn-upload-analyze").style.display = "inline-block";
+}
+
+async function uploadFile() {
+  if (!isLoggedIn || !localStorage.getItem("debugai_token")) {
+    alert("Você precisa fazer login para usar o debugAI.");
+    openModal();
+    return;
+  }
+
+  if (!uploadedFile) {
+    return alert("Selecione um arquivo primeiro.");
+  }
+
+  const erro = document.getElementById("error-input").value.trim() || "Análise de arquivo enviado";
+  const contexto = document.getElementById("context-input").value.trim();
+
+  document.getElementById("error-loading").style.display = "block";
+  document.getElementById("error-result").style.display = "none";
+
+  try {
+    const token = localStorage.getItem("debugai_token");
+    const formData = new FormData();
+    formData.append("file", uploadedFile);
+    formData.append("erro", erro);
+    formData.append("contexto", contexto);
+
+    const res = await fetch("/api/debug/upload", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      if (data.upgrade) {
+        alert(data.error);
+      } else {
+        alert(data.error);
+      }
+    } else {
+      document.getElementById("error-result-text").innerHTML = renderMarkdown(data.resultado);
+      document.getElementById("error-result").style.display = "block";
+      analysisCount++;
+      document.getElementById("analysis-count").textContent = analysisCount;
+      updateProgressBar();
+      loadHistory();
+      // Reset file upload
+      resetFileUpload();
+    }
+  } catch (err) {
+    alert("Erro ao conectar com a API.");
+    console.error(err);
+  } finally {
+    document.getElementById("error-loading").style.display = "none";
+  }
+}
+
+function resetFileUpload() {
+  uploadedFile = null;
+  const area = document.getElementById("file-upload-area");
+  const text = document.getElementById("file-upload-text");
+  if (area) {
+    area.classList.remove("has-file");
+    text.innerHTML = '📁 arraste um arquivo aqui ou <strong>escolha arquivo</strong>';
+  }
+  const input = document.getElementById("file-input");
+  if (input) input.value = "";
+  const btn = document.getElementById("btn-upload-analyze");
+  if (btn) btn.style.display = "none";
 }
