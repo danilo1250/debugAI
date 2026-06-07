@@ -149,6 +149,7 @@ async function showLoggedInState() {
     <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
     <span style="color: var(--text-secondary); font-size: 0.84rem;">olá, <strong style="color: var(--accent);">${currentUser.name}</strong></span>
     <a href="/app.html" class="btn-primary-sm" style="font-size:0.8rem;padding:0.4rem 0.9rem;">usar IA</a>
+    <a href="/conta.html" style="color:var(--text-secondary);font-size:0.8rem;">⚙️ conta</a>
     ${dashboardLink}
     ${adminLink}
     <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>

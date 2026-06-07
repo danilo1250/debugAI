@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>debugAI — Minha Conta</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .conta-container {
+      max-width: 550px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    .conta-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .conta-header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .conta-header p {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-top: 0.3rem;
+    }
+
+    .conta-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.8rem;
+      margin-bottom: 1.2rem;
+    }
+
+    .conta-section h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .conta-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .conta-info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .conta-info-row:last-child {
+      border-bottom: none;
+    }
+
+    .conta-info-label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .conta-info-value {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .plan-badge {
+      background: rgba(212, 165, 116, 0.15);
+      color: var(--accent);
+      padding: 0.3rem 0.8rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .conta-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+    }
+
+    .conta-form label {
+      font-size: 0.72rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.2rem;
+    }
+
+    .conta-form input {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.9rem;
+      color: var(--text-primary);
+      font-size: 0.88rem;
+      font-family: inherit;
+    }
+
+    .conta-form input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .conta-form input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .btn-save {
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      padding: 0.7rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      margin-top: 0.5rem;
+    }
+
+    .btn-save:hover {
+      background: var(--accent-light);
+    }
+
+    .btn-cancel-sub {
+      background: transparent;
+      border: 1px solid var(--error);
+      color: var(--error);
+      padding: 0.65rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn-cancel-sub:hover {
+      background: var(--error);
+      color: #fff;
+    }
+
+    .btn-upgrade {
+      background: var(--accent);
+      color: #0a0a0a;
+      border: none;
+      padding: 0.65rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+      width: 100%;
+      text-align: center;
+      display: block;
+    }
+
+    .btn-upgrade:hover {
+      background: var(--accent-light);
+      color: #0a0a0a;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-logo">
+      <a href="/" style="color: var(--accent);"><span class="logo">debugAI</span></a>
+    </div>
+    <nav>
+      <a href="/">home</a>
+      <a href="/app.html">usar IA</a>
+      <a href="/conta.html" style="color: var(--accent);">minha conta</a>
+    </nav>
+    <div class="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
+      <span id="user-greeting" style="color: var(--text-secondary); font-size: 0.84rem;"></span>
+      <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
+    </div>
+  </header>
+
+  <div class="conta-container">
+    <div class="conta-header">
+      <h1>⚙️ minha conta</h1>
+      <p>Gerencie suas informações e assinatura.</p>
+    </div>
+
+    <!-- Info da Conta -->
+    <div class="conta-section">
+      <h3>👤 informações</h3>
+      <div class="conta-info">
+        <div class="conta-info-row">
+          <span class="conta-info-label">nome</span>
+          <span class="conta-info-value" id="conta-nome">...</span>
+        </div>
+        <div class="conta-info-row">
+          <span class="conta-info-label">e-mail</span>
+          <span class="conta-info-value" id="conta-email">...</span>
+        </div>
+        <div class="conta-info-row">
+          <span class="conta-info-label">plano</span>
+          <span class="plan-badge" id="conta-plano">...</span>
+        </div>
+        <div class="conta-info-row">
+          <span class="conta-info-label">membro desde</span>
+          <span class="conta-info-value" id="conta-desde">...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assinatura -->
+    <div class="conta-section">
+      <h3>💳 assinatura</h3>
+      <div id="assinatura-content">
+        <p style="color: var(--text-secondary); font-size: 0.84rem;">Carregando...</p>
+      </div>
+    </div>
+
+    <!-- Alterar Senha -->
+    <div class="conta-section">
+      <h3>🔑 alterar senha</h3>
+      <div class="conta-form">
+        <div>
+          <label>senha atual</label>
+          <input type="password" id="current-password" placeholder="••••••••" />
+        </div>
+        <div>
+          <label>nova senha</label>
+          <input type="password" id="new-password" placeholder="mínimo 6 caracteres" />
+        </div>
+        <div>
+          <label>confirmar nova senha</label>
+          <input type="password" id="confirm-password" placeholder="repita a nova senha" />
+        </div>
+        <button class="btn-save" onclick="changePassword()">alterar senha</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">debugAI</div>
+    <p>© 2025 debugAI — feito por devs, pra devs</p>
+  </footer>
+
+  <script>
+    const token = localStorage.getItem("debugai_token");
+    if (!token) window.location.href = "/";
+
+    // Theme
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = (html.getAttribute("data-theme") || "dark") === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("debugai_theme", next);
+      document.getElementById("theme-toggle").textContent = next === "dark" ? "🌙" : "☀️";
+    }
+    (function() {
+      const saved = localStorage.getItem("debugai_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      const btn = document.getElementById("theme-toggle");
+      if (btn) btn.textContent = saved === "dark" ? "🌙" : "☀️";
+    })();
+
+    // Load user data
+    window.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) { window.location.href = "/"; return; }
+        const data = await res.json();
+        const user = data.user;
+
+        document.getElementById("user-greeting").innerHTML = `olá, <strong style="color:var(--accent);">${user.name}</strong>`;
+        document.getElementById("conta-nome").textContent = user.name;
+        document.getElementById("conta-email").textContent = user.email;
+        document.getElementById("conta-plano").textContent = user.plan === "free" ? "Grátis" : user.plan.charAt(0).toUpperCase() + user.plan.slice(1);
+        document.getElementById("conta-desde").textContent = new Date(user.created_at + "Z").toLocaleDateString("pt-BR");
+
+        // Assinatura
+        const subContent = document.getElementById("assinatura-content");
+        if (user.plan === "free") {
+          subContent.innerHTML = `
+            <p style="color:var(--text-secondary);font-size:0.84rem;margin-bottom:1rem;">Você está no plano gratuito. Faça upgrade para desbloquear mais recursos.</p>
+            <a href="/#pricing" class="btn-upgrade">ver planos e fazer upgrade</a>
+          `;
+        } else {
+          subContent.innerHTML = `
+            <p style="color:var(--text-secondary);font-size:0.84rem;margin-bottom:1rem;">Plano ativo: <strong style="color:var(--accent);">${user.plan.toUpperCase()}</strong>. Sua assinatura renova mensalmente.</p>
+            <button class="btn-cancel-sub" onclick="cancelSubscription()">cancelar assinatura</button>
+            <p style="color:var(--text-muted);font-size:0.72rem;margin-top:0.8rem;">Ao cancelar, seu plano voltará para Grátis ao final do período.</p>
+          `;
+        }
+      } catch (err) {
+        window.location.href = "/";
+      }
+    });
+
+    async function changePassword() {
+      const current = document.getElementById("current-password").value.trim();
+      const newPass = document.getElementById("new-password").value.trim();
+      const confirm = document.getElementById("confirm-password").value.trim();
+
+      if (!current || !newPass || !confirm) return alert("Preencha todos os campos.");
+      if (newPass !== confirm) return alert("A nova senha e a confirmação não coincidem.");
+      if (newPass.length < 6) return alert("Nova senha deve ter pelo menos 6 caracteres.");
+
+      try {
+        const res = await fetch("/api/auth/change-password", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ currentPassword: current, newPassword: newPass }),
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error);
+        alert("✅ " + data.message);
+        document.getElementById("current-password").value = "";
+        document.getElementById("new-password").value = "";
+        document.getElementById("confirm-password").value = "";
+      } catch (err) {
+        alert("Erro ao alterar senha.");
+      }
+    }
+
+    async function cancelSubscription() {
+      if (!confirm("Tem certeza que quer cancelar sua assinatura?\n\nSeu plano voltará para Grátis.")) return;
+
+      try {
+        const res = await fetch("/api/payments/cancel", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error);
+        alert("✅ " + data.message);
+        window.location.reload();
+      } catch (err) {
+        alert("Erro ao cancelar assinatura.");
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem("debugai_token");
+      window.location.href = "/";
+    }
+  </script>
+</body>
+</html>
