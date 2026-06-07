@@ -181,27 +181,28 @@ router.post("/cancel", async (req, res) => {
     return res.status(404).json({ error: "Usuário não encontrado." });
   }
 
-  if (!user.stripe_customer_id) {
-    return res.status(400).json({ error: "Nenhuma assinatura encontrada." });
+  if (user.plan === "free") {
+    return res.status(400).json({ error: "Você já está no plano Grátis." });
   }
 
   try {
-    // Lista assinaturas ativas do cliente
-    const subscriptions = await stripe.subscriptions.list({
-      customer: user.stripe_customer_id,
-      status: "active",
-    });
+    // Se tem customer_id no Stripe, tenta cancelar a assinatura lá também
+    if (user.stripe_customer_id) {
+      try {
+        const subscriptions = await stripe.subscriptions.list({
+          customer: user.stripe_customer_id,
+          status: "active",
+        });
 
-    if (subscriptions.data.length === 0) {
-      return res.status(400).json({ error: "Nenhuma assinatura ativa encontrada." });
+        for (const sub of subscriptions.data) {
+          await stripe.subscriptions.cancel(sub.id);
+        }
+      } catch (stripeErr) {
+        console.log("Aviso: erro ao cancelar no Stripe (pode não ter assinatura ativa):", stripeErr.message);
+      }
     }
 
-    // Cancela todas as assinaturas ativas
-    for (const sub of subscriptions.data) {
-      await stripe.subscriptions.cancel(sub.id);
-    }
-
-    // Atualiza plano para free
+    // Sempre volta pra free no banco
     await db.prepare("UPDATE users SET plan = 'free' WHERE id = ?").run(userId);
 
     console.log(`✓ Assinatura cancelada para user ${userId}`);
