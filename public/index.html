@@ -19,6 +19,7 @@
       <a href="/app.html">usar IA</a>
     </nav>
     <div class="header-actions" id="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
       <button onclick="openModal()">entrar</button>
       <a href="/app.html" class="btn-primary-sm">começar grátis</a>
     </div>
@@ -235,6 +236,7 @@
       </div>
 
       <form id="auth-form" onsubmit="handleAuth(event)">
+        <input type="hidden" id="auth-referral-code" value="" />
         <div id="name-field" style="display:none;">
           <label>nome</label>
           <input type="text" id="auth-name" placeholder="seu nome" />

@@ -26,9 +26,17 @@ async function initDatabase() {
       analysis_count INTEGER DEFAULT 0,
       stripe_customer_id TEXT,
       analysis_reset_date TEXT,
+      referral_code TEXT UNIQUE,
+      referred_by INTEGER,
+      bonus_analyses INTEGER DEFAULT 0,
       created_at TEXT DEFAULT (datetime('now'))
     )
   `);
+
+  // Migrações para colunas de referral (tabelas existentes)
+  try { await db.execute("ALTER TABLE users ADD COLUMN referral_code TEXT UNIQUE"); } catch (e) {}
+  try { await db.execute("ALTER TABLE users ADD COLUMN referred_by INTEGER"); } catch (e) {}
+  try { await db.execute("ALTER TABLE users ADD COLUMN bonus_analyses INTEGER DEFAULT 0"); } catch (e) {}
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS history (

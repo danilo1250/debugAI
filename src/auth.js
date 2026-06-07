@@ -1,14 +1,20 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const crypto = require("crypto");
 const { db } = require("./database");
 
 const router = express.Router();
 const JWT_SECRET = process.env.JWT_SECRET || "debugai-secret-key-change-me";
 
+// Gera código de referral único (6 caracteres alfanuméricos)
+function generateReferralCode() {
+  return crypto.randomBytes(4).toString("base64url").substring(0, 6).toUpperCase();
+}
+
 // === REGISTRO ===
 router.post("/register", async (req, res) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, referralCode } = req.body;
 
   if (!name || !email || !password) {
     return res.status(400).json({ error: "Todos os campos são obrigatórios." });
@@ -41,8 +47,34 @@ router.post("/register", async (req, res) => {
     // Hash da senha
     const hashedPassword = bcrypt.hashSync(password, 10);
 
-    // Insere no banco
-    const result = await db.prepare("INSERT INTO users (name, email, password) VALUES (?, ?, ?)").run(cleanName, cleanEmail, hashedPassword);
+    // Gera código de referral único para o novo usuário
+    let newReferralCode = generateReferralCode();
+    let attempts = 0;
+    while (attempts < 10) {
+      const existing = await db.prepare("SELECT id FROM users WHERE referral_code = ?").get(newReferralCode);
+      if (!existing) break;
+      newReferralCode = generateReferralCode();
+      attempts++;
+    }
+
+    // Verifica se o referralCode enviado é válido (referenciado por alguém)
+    let referrerId = null;
+    if (referralCode && referralCode.trim()) {
+      const referrer = await db.prepare("SELECT id FROM users WHERE referral_code = ?").get(referralCode.trim().toUpperCase());
+      if (referrer) {
+        referrerId = referrer.id;
+      }
+    }
+
+    // Insere no banco com referral_code e referred_by
+    const result = await db.prepare(
+      "INSERT INTO users (name, email, password, referral_code, referred_by) VALUES (?, ?, ?, ?, ?)"
+    ).run(cleanName, cleanEmail, hashedPassword, newReferralCode, referrerId);
+
+    // Se foi referido, dá +5 bônus de análises ao referenciador
+    if (referrerId) {
+      await db.prepare("UPDATE users SET bonus_analyses = bonus_analyses + 5 WHERE id = ?").run(referrerId);
+    }
 
     // Gera token JWT
     const token = jwt.sign({ id: result.lastInsertRowid, email: cleanEmail, name: cleanName }, JWT_SECRET, {

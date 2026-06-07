@@ -464,6 +464,7 @@
       <a href="/dashboard.html" style="color: var(--accent);">dashboard</a>
     </nav>
     <div class="header-actions" id="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
       <span id="user-greeting" style="color: var(--text-secondary); font-size: 0.84rem;"></span>
       <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
     </div>
@@ -570,6 +571,27 @@ print(res.json()["resultado"])</pre>
     if (!token) {
       window.location.href = "/";
     }
+
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute("data-theme") || "dark";
+      const next = current === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("debugai_theme", next);
+      updateThemeIcon();
+    }
+    function updateThemeIcon() {
+      const btn = document.getElementById("theme-toggle");
+      if (!btn) return;
+      const theme = document.documentElement.getAttribute("data-theme") || "dark";
+      btn.textContent = theme === "dark" ? "🌙" : "☀️";
+    }
+    (function applyTheme() {
+      const saved = localStorage.getItem("debugai_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      updateThemeIcon();
+    })();
 
     // Init
     window.addEventListener("DOMContentLoaded", async () => {

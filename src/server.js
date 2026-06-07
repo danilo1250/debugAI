@@ -591,6 +591,33 @@ app.get("/api/stats/personal", authMiddleware, async (req, res) => {
   }
 });
 
+// ============================================================
+// === REFERRAL SYSTEM ===
+// ============================================================
+
+app.get("/api/referral", authMiddleware, async (req, res) => {
+  try {
+    const user = await db.prepare("SELECT referral_code, bonus_analyses FROM users WHERE id = ?").get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    // Conta quantas pessoas foram referidas por este usuário
+    const referredResult = await db.prepare("SELECT COUNT(*) as count FROM users WHERE referred_by = ?").get(req.user.id);
+    const referredCount = referredResult ? referredResult.count : 0;
+
+    res.json({
+      referralCode: user.referral_code,
+      referralLink: `https://debugai-uhqi.onrender.com/?ref=${user.referral_code}`,
+      referredCount,
+      bonusAnalyses: user.bonus_analyses || 0,
+    });
+  } catch (err) {
+    console.error("Erro ao buscar referral:", err);
+    res.status(500).json({ error: "Erro ao buscar dados de referral." });
+  }
+});
+
 // === INICIA SERVIDOR ===
 async function start() {
   await initDatabase();

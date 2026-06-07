@@ -5,8 +5,52 @@ let analysisCount = 0;
 let currentUser = null;
 let planInfo = null;
 
+// === Theme Toggle ===
+function toggleTheme() {
+  const html = document.documentElement;
+  const current = html.getAttribute("data-theme") || "dark";
+  const next = current === "dark" ? "light" : "dark";
+  html.setAttribute("data-theme", next);
+  localStorage.setItem("debugai_theme", next);
+  updateThemeIcon();
+}
+
+function updateThemeIcon() {
+  const btn = document.getElementById("theme-toggle");
+  if (!btn) return;
+  const theme = document.documentElement.getAttribute("data-theme") || "dark";
+  btn.textContent = theme === "dark" ? "🌙" : "☀️";
+}
+
+// Aplica tema salvo ao carregar
+(function applyTheme() {
+  const saved = localStorage.getItem("debugai_theme") || "dark";
+  document.documentElement.setAttribute("data-theme", saved);
+  // updateThemeIcon é chamado no DOMContentLoaded
+})();
+
+// === Captura código de referral da URL ===
+(function captureReferralCode() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get("ref");
+  if (ref) {
+    // Salva no sessionStorage para usar no registro
+    sessionStorage.setItem("debugai_referral", ref);
+  }
+})();
+
 // === Verifica se já está logado ao carregar a página ===
 window.addEventListener("DOMContentLoaded", () => {
+  // Aplica ícone do tema
+  updateThemeIcon();
+
+  // Preenche campo hidden de referral (se existir na URL ou sessionStorage)
+  const refField = document.getElementById("auth-referral-code");
+  if (refField) {
+    const ref = sessionStorage.getItem("debugai_referral") || new URLSearchParams(window.location.search).get("ref") || "";
+    refField.value = ref;
+  }
+
   const token = localStorage.getItem("debugai_token");
   if (token) {
     fetchUser(token);
@@ -102,12 +146,14 @@ async function showLoggedInState() {
   } catch (e) {}
 
   headerActions.innerHTML = `
+    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
     <span style="color: var(--text-secondary); font-size: 0.84rem;">olá, <strong style="color: var(--accent);">${currentUser.name}</strong></span>
     <a href="/app.html" class="btn-primary-sm" style="font-size:0.8rem;padding:0.4rem 0.9rem;">usar IA</a>
     ${dashboardLink}
     ${adminLink}
     <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
   `;
+  updateThemeIcon();
 
   // Bloqueia tab de revisão se plano free
   if (planInfo && !planInfo.features.codeReview) {
@@ -123,6 +169,9 @@ async function showLoggedInState() {
 
   // Carrega stats pessoais
   loadPersonalStats();
+
+  // Carrega dados de referral
+  loadReferral();
 }
 
 function showUpgradeMessage() {
@@ -179,7 +228,8 @@ async function handleAuth(e) {
   }
 
   const url = authMode === "register" ? "/api/auth/register" : "/api/auth/login";
-  const body = authMode === "register" ? { name, email, password } : { email, password };
+  const referralCode = document.getElementById("auth-referral-code") ? document.getElementById("auth-referral-code").value : (sessionStorage.getItem("debugai_referral") || "");
+  const body = authMode === "register" ? { name, email, password, referralCode } : { email, password };
 
   try {
     const res = await fetch(url, {
@@ -598,4 +648,39 @@ async function loadPersonalStats() {
   } catch (err) {
     console.error("Erro ao carregar stats pessoais:", err);
   }
+}
+
+
+// === Referral / Convide Amigos ===
+async function loadReferral() {
+  const token = localStorage.getItem("debugai_token");
+  if (!token) return;
+
+  const section = document.getElementById("referral-section");
+  if (!section) return;
+
+  try {
+    const res = await fetch("/api/referral", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!res.ok) return;
+
+    const data = await res.json();
+
+    section.style.display = "block";
+    document.getElementById("referral-link").value = data.referralLink;
+    document.getElementById("referral-count").textContent = data.referredCount;
+    document.getElementById("referral-bonus").textContent = data.bonusAnalyses;
+  } catch (err) {
+    console.error("Erro ao carregar referral:", err);
+  }
+}
+
+function copyReferralLink() {
+  const input = document.getElementById("referral-link");
+  if (!input) return;
+  navigator.clipboard.writeText(input.value).then(() => {
+    alert("Link copiado! Compartilhe com seus amigos.");
+  });
 }

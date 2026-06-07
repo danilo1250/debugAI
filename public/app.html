@@ -60,6 +60,7 @@
       <a href="/app.html" style="color: var(--accent);">usar IA</a>
     </nav>
     <div class="header-actions" id="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
       <button onclick="openModal()">entrar</button>
       <a href="#" onclick="openModal()" class="btn-primary-sm">começar grátis</a>
     </div>
@@ -224,6 +225,26 @@
       </div>
       <div id="history-list"></div>
     </div>
+
+    <!-- Referral / Convide Amigos -->
+    <div id="referral-section" class="referral-section" style="display:none;">
+      <h3>🎁 convide amigos</h3>
+      <p>Compartilhe seu link e ganhe <strong>+5 análises</strong> para cada amigo que se cadastrar!</p>
+      <div class="referral-link-box">
+        <input type="text" id="referral-link" readonly />
+        <button onclick="copyReferralLink()">📋 copiar link</button>
+      </div>
+      <div class="referral-stats">
+        <div class="referral-stat">
+          <span class="value" id="referral-count">0</span>
+          <span class="label">amigos convidados</span>
+        </div>
+        <div class="referral-stat">
+          <span class="value" id="referral-bonus">0</span>
+          <span class="label">análises bônus ganhas</span>
+        </div>
+      </div>
+    </div>
   </section>
 
   <!-- FOOTER -->
@@ -248,6 +269,7 @@
       </div>
 
       <form id="auth-form" onsubmit="handleAuth(event)">
+        <input type="hidden" id="auth-referral-code" value="" />
         <div id="name-field" style="display:none;">
           <label>nome</label>
           <input type="text" id="auth-name" placeholder="seu nome" />
