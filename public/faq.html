@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>debugAI — Perguntas Frequentes</title>
+  <meta name="description" content="Perguntas frequentes sobre o debugAI. Tudo que você precisa saber sobre planos, segurança e funcionalidades.">
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .faq-container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 3rem 2rem;
+    }
+
+    .faq-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .faq-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .faq-header p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+
+    .faq-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      transition: border-color 0.2s;
+    }
+
+    .faq-item:hover {
+      border-color: var(--border-light);
+    }
+
+    .faq-question {
+      width: 100%;
+      background: transparent;
+      border: none;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      color: var(--text-primary);
+      font-size: 0.92rem;
+      font-weight: 600;
+      font-family: inherit;
+      text-align: left;
+    }
+
+    .faq-question:hover {
+      color: var(--accent);
+    }
+
+    .faq-question .faq-icon {
+      font-size: 1.1rem;
+      transition: transform 0.3s;
+      color: var(--text-muted);
+    }
+
+    .faq-item.open .faq-icon {
+      transform: rotate(45deg);
+    }
+
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+      padding: 0 1.5rem;
+    }
+
+    .faq-item.open .faq-answer {
+      max-height: 300px;
+      padding: 0 1.5rem 1.2rem;
+    }
+
+    .faq-answer p {
+      color: var(--text-secondary);
+      font-size: 0.86rem;
+      line-height: 1.7;
+    }
+
+    .faq-back {
+      display: inline-block;
+      margin-top: 2rem;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .faq-back:hover {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <div class="header-logo">
+      <a href="/" style="color: var(--accent);"><span class="logo">debugAI</span></a>
+    </div>
+    <nav>
+      <a href="/">home</a>
+      <a href="/app.html">usar IA</a>
+      <a href="/faq.html" style="color: var(--accent);">FAQ</a>
+    </nav>
+    <div class="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
+    </div>
+  </header>
+
+  <div class="faq-container">
+    <div class="faq-header">
+      <h1>❓ Perguntas Frequentes</h1>
+      <p>Tudo que você precisa saber sobre o debugAI</p>
+    </div>
+
+    <div class="faq-list">
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          O que é o debugAI?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>O debugAI é uma ferramenta de inteligência artificial que analisa erros e stack traces do seu código, identifica a causa raiz do problema e sugere a correção — tudo em segundos. É como ter um desenvolvedor sênior revisando seus erros 24/7.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Como funciona a análise?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Você cola o erro, stack trace ou código com problema. Nossa IA analisa o contexto completo, identifica padrões de erro conhecidos, localiza a causa raiz e gera uma explicação detalhada com a correção pronta para implementar. O processo leva apenas alguns segundos.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Quais linguagens são suportadas?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>O debugAI suporta mais de 12 linguagens e frameworks, incluindo JavaScript, TypeScript, Python, Java, C#, PHP, Ruby, Go, Rust, Swift, Kotlin, Dart/Flutter, React, Next.js, Node.js e SQL. A IA também consegue detectar automaticamente a linguagem na maioria dos casos.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          O plano grátis tem limite?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Sim, o plano grátis permite até 10 análises por mês. Isso é ideal para projetos pessoais ou para experimentar a ferramenta. Se precisar de mais, o plano Pro oferece análises ilimitadas por R$19,99/mês.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Como faço upgrade?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Basta acessar a seção de planos na página principal e clicar em "assinar". O pagamento é processado de forma segura pelo Stripe. Após a confirmação, seu plano é atualizado instantaneamente e você já pode usar todos os recursos.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Meu código é seguro?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Sim. O debugAI não utiliza seu código para treinar nenhum modelo de IA. Os dados são processados apenas para gerar a análise e ficam salvos no seu histórico pessoal (que você pode apagar a qualquer momento). Temos política de zero retenção de dados para treinamento.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Como usar a API?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>A API está disponível para usuários do plano Team. Você gera uma chave de API no painel da sua conta e pode integrar o debugAI diretamente na sua pipeline de CI/CD. Basta enviar um POST para /api/v1/analyze com o header X-API-Key e o corpo com os campos "erro", "codigo" e "contexto".</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Como cancelar minha assinatura?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Você pode cancelar sua assinatura a qualquer momento na página da sua conta (⚙️ conta). Basta clicar em "cancelar assinatura". O cancelamento é imediato e seu plano volta para o Grátis. Não há multa ou taxa de cancelamento.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          O que é o sistema de referral?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>O sistema de referral permite que você convide amigos para o debugAI. Para cada amigo que se cadastrar usando seu link, você ganha +5 análises bônus. Seu link de convite está disponível na página "usar IA" após fazer login.</p>
+        </div>
+      </div>
+
+      <div class="faq-item">
+        <button class="faq-question" onclick="toggleFaq(this)">
+          Como contato o suporte?
+          <span class="faq-icon">+</span>
+        </button>
+        <div class="faq-answer">
+          <p>Você pode abrir um ticket de suporte diretamente na página da sua conta. Usuários do plano Team têm suporte prioritário e seus tickets são respondidos com prioridade. Para questões urgentes, o time responde dentro de 24h úteis.</p>
+        </div>
+      </div>
+    </div>
+
+    <a href="/" class="faq-back">← voltar para a home</a>
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">debugAI</div>
+    <p>© 2025 debugAI — feito por devs, pra devs</p>
+  </footer>
+
+  <script>
+    // Theme toggle
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute("data-theme") || "dark";
+      const next = current === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("debugai_theme", next);
+      updateThemeIcon();
+    }
+    function updateThemeIcon() {
+      const btn = document.getElementById("theme-toggle");
+      if (!btn) return;
+      const theme = document.documentElement.getAttribute("data-theme") || "dark";
+      btn.textContent = theme === "dark" ? "🌙" : "☀️";
+    }
+    (function applyTheme() {
+      const saved = localStorage.getItem("debugai_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      updateThemeIcon();
+    })();
+
+    // Accordion toggle
+    function toggleFaq(btn) {
+      const item = btn.parentElement;
+      const wasOpen = item.classList.contains("open");
+
+      // Fecha todos
+      document.querySelectorAll(".faq-item").forEach(i => i.classList.remove("open"));
+
+      // Abre o clicado (se não estava aberto)
+      if (!wasOpen) {
+        item.classList.add("open");
+      }
+    }
+  </script>
+</body>
+</html>

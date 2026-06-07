@@ -56,6 +56,45 @@
         grid-template-columns: repeat(2, 1fr);
       }
     }
+
+    .btn-favorite {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0.3rem 0.5rem;
+      opacity: 0.4;
+      transition: all 0.2s;
+    }
+    .btn-favorite:hover {
+      opacity: 0.8;
+    }
+    .btn-favorite.active {
+      opacity: 1;
+      background: rgba(255, 215, 0, 0.12);
+      border-color: #ffd700;
+    }
+    .btn-filter-favorites {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-secondary);
+      padding: 0.4rem 0.9rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.2s;
+    }
+    .btn-filter-favorites:hover {
+      border-color: #ffd700;
+      color: #ffd700;
+    }
+    .btn-filter-favorites.active {
+      background: rgba(255, 215, 0, 0.12);
+      border-color: #ffd700;
+      color: #ffd700;
+    }
   </style>
 </head>
 <body>
@@ -231,7 +270,10 @@
     <div id="history-section" style="display:none; margin-top: 2.5rem;">
       <div class="history-header">
         <h3>📋 seu histórico</h3>
-        <button class="btn-clear" onclick="clearAllHistory()">limpar tudo</button>
+        <div style="display:flex;gap:0.5rem;align-items:center;">
+          <button class="btn-filter-favorites" id="btn-filter-favorites" onclick="filterFavorites()">⭐ favoritos</button>
+          <button class="btn-clear" onclick="clearAllHistory()">limpar tudo</button>
+        </div>
       </div>
       <div id="history-list"></div>
     </div>

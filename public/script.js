@@ -545,12 +545,15 @@ async function subscribePlan(plan) {
 })();
 
 // === Histórico ===
+let showingFavorites = false;
+
 async function loadHistory() {
   const token = localStorage.getItem("debugai_token");
   if (!token) return;
 
   try {
-    const res = await fetch("/api/history", {
+    const url = showingFavorites ? "/api/history/favorites" : "/api/history";
+    const res = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -562,7 +565,9 @@ async function loadHistory() {
 
     if (data.history.length === 0) {
       section.style.display = "block";
-      list.innerHTML = '<p class="history-empty">Nenhuma análise ainda. Use o debugAI e seu histórico aparecerá aqui.</p>';
+      list.innerHTML = showingFavorites
+        ? '<p class="history-empty">Nenhuma análise favoritada ainda.</p>'
+        : '<p class="history-empty">Nenhuma análise ainda. Use o debugAI e seu histórico aparecerá aqui.</p>';
       return;
     }
 
@@ -575,6 +580,7 @@ async function loadHistory() {
         </div>
         <div class="history-item-input">${escapeHtml(item.input_error)}</div>
         <div class="history-item-actions">
+          <button class="btn-favorite ${item.is_favorite ? 'active' : ''}" onclick="toggleFavorite(${item.id}, this)">⭐</button>
           <button onclick="toggleResponse(${index})">👁 ver resposta</button>
           <button onclick="copyHistoryResponse(${index})">📋 copiar</button>
           <button onclick="deleteHistoryItem(${item.id})">🗑 remover</button>
@@ -585,6 +591,37 @@ async function loadHistory() {
   } catch (err) {
     console.error("Erro ao carregar histórico:", err);
   }
+}
+
+async function toggleFavorite(id, btn) {
+  const token = localStorage.getItem("debugai_token");
+  if (!token) return;
+
+  try {
+    const res = await fetch(`/api/history/${id}/favorite`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.is_favorite) {
+      btn.classList.add("active");
+    } else {
+      btn.classList.remove("active");
+      if (showingFavorites) loadHistory();
+    }
+  } catch (err) {
+    console.error("Erro ao favoritar:", err);
+  }
+}
+
+function filterFavorites() {
+  showingFavorites = !showingFavorites;
+  const btn = document.getElementById("btn-filter-favorites");
+  if (btn) {
+    btn.classList.toggle("active", showingFavorites);
+  }
+  loadHistory();
 }
 
 function toggleResponse(index) {

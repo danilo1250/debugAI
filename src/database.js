@@ -38,6 +38,9 @@ async function initDatabase() {
   try { await db.execute("ALTER TABLE users ADD COLUMN referred_by INTEGER"); } catch (e) {}
   try { await db.execute("ALTER TABLE users ADD COLUMN bonus_analyses INTEGER DEFAULT 0"); } catch (e) {}
 
+  // Migração: coluna de favorito no histórico
+  try { await db.execute("ALTER TABLE history ADD COLUMN is_favorite INTEGER DEFAULT 0"); } catch (e) {}
+
   await db.execute(`
     CREATE TABLE IF NOT EXISTS history (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -187,10 +187,30 @@ app.get("/api/plan", authMiddleware, async (req, res) => {
 // === HISTÓRICO ===
 app.get("/api/history", authMiddleware, async (req, res) => {
   const history = await db.prepare(
-    "SELECT id, type, input_error, input_code, input_context, response, created_at FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50"
+    "SELECT id, type, input_error, input_code, input_context, response, is_favorite, created_at FROM history WHERE user_id = ? ORDER BY created_at DESC LIMIT 50"
   ).all(req.user.id);
 
   res.json({ history });
+});
+
+// Retorna apenas itens favoritados
+app.get("/api/history/favorites", authMiddleware, async (req, res) => {
+  const history = await db.prepare(
+    "SELECT id, type, input_error, input_code, input_context, response, is_favorite, created_at FROM history WHERE user_id = ? AND is_favorite = 1 ORDER BY created_at DESC"
+  ).all(req.user.id);
+
+  res.json({ history });
+});
+
+// Toggle favorito
+app.post("/api/history/:id/favorite", authMiddleware, async (req, res) => {
+  const item = await db.prepare("SELECT * FROM history WHERE id = ? AND user_id = ?").get(parseInt(req.params.id), req.user.id);
+  if (!item) {
+    return res.status(404).json({ error: "Item não encontrado." });
+  }
+  const newValue = item.is_favorite ? 0 : 1;
+  await db.prepare("UPDATE history SET is_favorite = ? WHERE id = ?").run(newValue, parseInt(req.params.id));
+  res.json({ is_favorite: newValue });
 });
 
 app.delete("/api/history/:id", authMiddleware, async (req, res) => {
@@ -505,6 +525,42 @@ app.get("/api/admin/stats", authMiddleware, adminMiddleware, async (req, res) =>
     openTickets: openTickets.count,
     planCounts,
   });
+});
+
+// Analytics avançado (admin)
+app.get("/api/admin/analytics", authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    // Novos usuários por dia (últimos 30 dias)
+    const newUsersPerDay = await db.prepare(
+      "SELECT DATE(created_at) as day, COUNT(*) as count FROM users WHERE created_at >= datetime('now', '-30 days') GROUP BY DATE(created_at) ORDER BY day"
+    ).all();
+
+    // Total de usuários pagos (receita aproximada)
+    const paidUsers = await db.prepare("SELECT COUNT(*) as count FROM users WHERE plan != 'free'").get();
+    const totalRevenue = paidUsers ? paidUsers.count : 0;
+
+    // Taxa de conversão
+    const totalUsers = await db.prepare("SELECT COUNT(*) as count FROM users").get();
+    const conversionRate = totalUsers && totalUsers.count > 0
+      ? ((totalRevenue / totalUsers.count) * 100).toFixed(1)
+      : 0;
+
+    // Usuários ativos hoje (que têm análises hoje)
+    const activeTodayResult = await db.prepare(
+      "SELECT COUNT(DISTINCT user_id) as count FROM history WHERE DATE(created_at) = DATE('now')"
+    ).get();
+    const activeToday = activeTodayResult ? activeTodayResult.count : 0;
+
+    res.json({
+      newUsersPerDay,
+      totalRevenue,
+      conversionRate: parseFloat(conversionRate),
+      activeToday,
+    });
+  } catch (err) {
+    console.error("Erro ao buscar analytics:", err);
+    res.status(500).json({ error: "Erro ao buscar analytics." });
+  }
 });
 
 // Reseta senha de um usuário (admin gera senha temporária)
