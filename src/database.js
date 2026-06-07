@@ -34,7 +34,8 @@ async function initDatabase() {
   `);
 
   // Migrações para colunas de referral (tabelas existentes)
-  try { await db.execute("ALTER TABLE users ADD COLUMN referral_code TEXT UNIQUE"); } catch (e) {}
+  try { await db.execute("ALTER TABLE users ADD COLUMN referral_code TEXT"); } catch (e) {}
+  try { await db.execute("CREATE UNIQUE INDEX IF NOT EXISTS idx_referral_code ON users(referral_code)"); } catch (e) {}
   try { await db.execute("ALTER TABLE users ADD COLUMN referred_by INTEGER"); } catch (e) {}
   try { await db.execute("ALTER TABLE users ADD COLUMN bonus_analyses INTEGER DEFAULT 0"); } catch (e) {}
 
