@@ -77,6 +77,44 @@ app.use(express.static(path.join(__dirname, "..", "public")));
 // Rotas de autenticação (register, login, me) - com rate limit anti brute force
 app.use("/api/auth", authLimiter, authRouter);
 
+// === ALTERAR SENHA ===
+app.put("/api/auth/change-password", authMiddleware, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  if (!currentPassword || !newPassword) {
+    return res.status(400).json({ error: "Senha atual e nova senha são obrigatórios." });
+  }
+
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: "Nova senha deve ter pelo menos 6 caracteres." });
+  }
+
+  if (newPassword.length > 128) {
+    return res.status(400).json({ error: "Nova senha muito longa." });
+  }
+
+  try {
+    const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    const bcrypt = require("bcryptjs");
+    const validPassword = bcrypt.compareSync(currentPassword, user.password);
+    if (!validPassword) {
+      return res.status(401).json({ error: "Senha atual incorreta." });
+    }
+
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    await db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, user.id);
+
+    res.json({ message: "Senha alterada com sucesso!" });
+  } catch (err) {
+    console.error("Erro ao alterar senha:", err);
+    res.status(500).json({ error: "Erro interno ao alterar senha." });
+  }
+});
+
 // Rotas de pagamento (checkout, webhook)
 app.use("/api/payments", paymentsRouter);
 

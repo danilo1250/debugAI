@@ -172,6 +172,18 @@ async function showLoggedInState() {
 
   // Carrega dados de referral
   loadReferral();
+
+  // Mostra seção de conta
+  const accountSection = document.getElementById("account-section");
+  if (accountSection) {
+    accountSection.style.display = "block";
+
+    // Mostra botão de cancelar assinatura se plano é pro ou team
+    const cancelSection = document.getElementById("cancel-subscription-section");
+    if (cancelSection && planInfo && (planInfo.plan === "pro" || planInfo.plan === "team")) {
+      cancelSection.style.display = "block";
+    }
+  }
 }
 
 function showUpgradeMessage() {
@@ -683,4 +695,87 @@ function copyReferralLink() {
   navigator.clipboard.writeText(input.value).then(() => {
     alert("Link copiado! Compartilhe com seus amigos.");
   });
+}
+
+// === Alterar Senha ===
+async function changePassword() {
+  const currentPassword = document.getElementById("current-password").value.trim();
+  const newPassword = document.getElementById("new-password").value.trim();
+  const confirmNewPassword = document.getElementById("confirm-new-password").value.trim();
+
+  if (!currentPassword || !newPassword || !confirmNewPassword) {
+    return alert("Preencha todos os campos.");
+  }
+
+  if (newPassword.length < 6) {
+    return alert("Nova senha deve ter pelo menos 6 caracteres.");
+  }
+
+  if (newPassword !== confirmNewPassword) {
+    return alert("As senhas não coincidem.");
+  }
+
+  const token = localStorage.getItem("debugai_token");
+  if (!token) {
+    return alert("Faça login primeiro.");
+  }
+
+  try {
+    const res = await fetch("/api/auth/change-password", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return alert(data.error || "Erro ao alterar senha.");
+    }
+
+    alert(data.message || "Senha alterada com sucesso!");
+    document.getElementById("current-password").value = "";
+    document.getElementById("new-password").value = "";
+    document.getElementById("confirm-new-password").value = "";
+  } catch (err) {
+    console.error("Erro ao alterar senha:", err);
+    alert("Erro ao conectar com o servidor.");
+  }
+}
+
+// === Cancelar Assinatura ===
+async function cancelSubscription() {
+  if (!confirm("Tem certeza que deseja cancelar sua assinatura?\n\nSeu plano voltará para Grátis e você perderá acesso aos recursos pagos.")) {
+    return;
+  }
+
+  const token = localStorage.getItem("debugai_token");
+  if (!token) {
+    return alert("Faça login primeiro.");
+  }
+
+  try {
+    const res = await fetch("/api/payments/cancel", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return alert(data.error || "Erro ao cancelar assinatura.");
+    }
+
+    alert(data.message || "Assinatura cancelada com sucesso!");
+    window.location.reload();
+  } catch (err) {
+    console.error("Erro ao cancelar assinatura:", err);
+    alert("Erro ao conectar com o servidor.");
+  }
 }

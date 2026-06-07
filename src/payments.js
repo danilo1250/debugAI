@@ -1,9 +1,11 @@
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const { db } = require("./database");
 
 const router = express.Router();
 
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+const JWT_SECRET = process.env.JWT_SECRET || "debugai-secret-key-change-me";
 
 const PLANS = {
   pro: {
@@ -26,9 +28,6 @@ router.post("/checkout", async (req, res) => {
   if (!authHeader) {
     return res.status(401).json({ error: "Faça login primeiro." });
   }
-
-  const jwt = require("jsonwebtoken");
-  const JWT_SECRET = process.env.JWT_SECRET || "debugai-secret-key-change-me";
 
   let userId;
   try {
@@ -71,9 +70,6 @@ router.post("/verify", async (req, res) => {
   if (!authHeader) {
     return res.status(401).json({ error: "Não autorizado." });
   }
-
-  const jwt = require("jsonwebtoken");
-  const JWT_SECRET = process.env.JWT_SECRET || "debugai-secret-key-change-me";
 
   let userId;
   try {
@@ -162,6 +158,58 @@ router.post("/webhook", express.raw({ type: "application/json" }), async (req, r
   }
 
   res.json({ received: true });
+});
+
+// === CANCELAR ASSINATURA ===
+router.post("/cancel", async (req, res) => {
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({ error: "Faça login primeiro." });
+  }
+
+  let userId;
+  try {
+    const decoded = jwt.verify(authHeader.replace("Bearer ", ""), JWT_SECRET);
+    userId = decoded.id;
+  } catch {
+    return res.status(401).json({ error: "Token inválido." });
+  }
+
+  const user = await db.prepare("SELECT * FROM users WHERE id = ?").get(userId);
+  if (!user) {
+    return res.status(404).json({ error: "Usuário não encontrado." });
+  }
+
+  if (!user.stripe_customer_id) {
+    return res.status(400).json({ error: "Nenhuma assinatura encontrada." });
+  }
+
+  try {
+    // Lista assinaturas ativas do cliente
+    const subscriptions = await stripe.subscriptions.list({
+      customer: user.stripe_customer_id,
+      status: "active",
+    });
+
+    if (subscriptions.data.length === 0) {
+      return res.status(400).json({ error: "Nenhuma assinatura ativa encontrada." });
+    }
+
+    // Cancela todas as assinaturas ativas
+    for (const sub of subscriptions.data) {
+      await stripe.subscriptions.cancel(sub.id);
+    }
+
+    // Atualiza plano para free
+    await db.prepare("UPDATE users SET plan = 'free' WHERE id = ?").run(userId);
+
+    console.log(`✓ Assinatura cancelada para user ${userId}`);
+    res.json({ message: "Assinatura cancelada com sucesso. Seu plano foi alterado para Grátis." });
+  } catch (err) {
+    console.error("Erro ao cancelar assinatura:", err.message);
+    res.status(500).json({ error: "Erro ao cancelar assinatura: " + err.message });
+  }
 });
 
 module.exports = router;
