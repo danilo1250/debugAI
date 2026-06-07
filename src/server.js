@@ -822,9 +822,23 @@ app.get("/api/stats/personal", authMiddleware, async (req, res) => {
 
 app.get("/api/referral", authMiddleware, async (req, res) => {
   try {
-    const user = await db.prepare("SELECT referral_code, bonus_analyses FROM users WHERE id = ?").get(req.user.id);
+    let user = await db.prepare("SELECT referral_code, bonus_analyses FROM users WHERE id = ?").get(req.user.id);
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    // Se a conta não tem código de referral (conta antiga), gera um agora
+    if (!user.referral_code) {
+      let newCode = crypto.randomBytes(4).toString("base64url").substring(0, 6).toUpperCase();
+      let attempts = 0;
+      while (attempts < 10) {
+        const existing = await db.prepare("SELECT id FROM users WHERE referral_code = ?").get(newCode);
+        if (!existing) break;
+        newCode = crypto.randomBytes(4).toString("base64url").substring(0, 6).toUpperCase();
+        attempts++;
+      }
+      await db.prepare("UPDATE users SET referral_code = ? WHERE id = ?").run(newCode, req.user.id);
+      user.referral_code = newCode;
     }
 
     // Conta quantas pessoas foram referidas por este usuário
