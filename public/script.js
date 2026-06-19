@@ -28,8 +28,12 @@ function updateThemeIcon() {
 (function applyTheme() {
   const saved = localStorage.getItem("debugai_theme") || "dark";
   document.documentElement.setAttribute("data-theme", saved);
-  // updateThemeIcon é chamado no DOMContentLoaded
 })();
+
+// === Registra Service Worker (PWA) ===
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/sw.js").catch(() => {});
+}
 
 // === Captura código de referral da URL ===
 (function captureReferralCode() {
