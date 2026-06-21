@@ -1490,7 +1490,7 @@ footer p {
   top: -10px;
   width: 2px;
   height: 20px;
-  background: linear-gradient(to bottom, var(--accent), transparent);
+  background: linear-gradient(to bottom, #ffffff, transparent);
   border-radius: 100px;
   z-index: 9999;
   pointer-events: none;
@@ -1501,22 +1501,22 @@ footer p {
 .falling-star::after {
   content: '';
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: -1px;
   width: 4px;
   height: 4px;
-  background: var(--accent);
+  background: #ffffff;
   border-radius: 50%;
-  box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent-light);
+  box-shadow: 0 0 6px #ffffff, 0 0 12px rgba(255, 255, 255, 0.6);
 }
 
 @keyframes fallingStar {
   0% {
-    transform: translateY(0) rotate(15deg);
+    transform: translateY(0) rotate(-15deg);
     opacity: 1;
   }
   100% {
-    transform: translateY(100vh) rotate(15deg);
+    transform: translateY(100vh) rotate(-15deg);
     opacity: 0;
   }
 }
