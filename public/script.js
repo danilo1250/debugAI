@@ -15,6 +15,24 @@ function toggleTheme() {
   html.setAttribute("data-theme", next);
   localStorage.setItem("debugai_theme", next);
   updateThemeIcon();
+
+  // Efeito de estrelas cadentes ao mudar pra dark
+  if (next === "dark") {
+    spawnFallingStars();
+  }
+}
+
+function spawnFallingStars() {
+  const count = 15;
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement("div");
+    star.className = "falling-star";
+    star.style.left = Math.random() * 100 + "vw";
+    star.style.animationDelay = (Math.random() * 0.5) + "s";
+    star.style.animationDuration = (0.5 + Math.random() * 0.8) + "s";
+    document.body.appendChild(star);
+    star.addEventListener("animationend", () => star.remove());
+  }
 }
 
 function updateThemeIcon() {

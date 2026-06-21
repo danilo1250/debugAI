@@ -1480,3 +1480,43 @@ footer p {
   background: var(--error);
   color: #fff;
 }
+
+
+/* ============================================
+   FALLING STARS (tema escuro toggle)
+   ============================================ */
+.falling-star {
+  position: fixed;
+  top: -10px;
+  width: 2px;
+  height: 20px;
+  background: linear-gradient(to bottom, var(--accent), transparent);
+  border-radius: 100px;
+  z-index: 9999;
+  pointer-events: none;
+  animation: fallingStar 0.8s ease-in forwards;
+  opacity: 0.9;
+}
+
+.falling-star::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -1px;
+  width: 4px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--accent), 0 0 12px var(--accent-light);
+}
+
+@keyframes fallingStar {
+  0% {
+    transform: translateY(0) rotate(15deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(15deg);
+    opacity: 0;
+  }
+}
