@@ -18,8 +18,9 @@ const app = express();
 
 // Helmet - headers de segurança (XSS, clickjacking, etc)
 app.use(helmet({
-  contentSecurityPolicy: false, // desativa pra não quebrar inline scripts
+  contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false,
+  crossOriginResourcePolicy: false,
 }));
 
 // CORS - restringe para o domínio correto
