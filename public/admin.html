@@ -304,6 +304,7 @@
     <div class="admin-tabs">
       <button class="admin-tab active" onclick="switchAdminTab('users')">👥 usuários</button>
       <button class="admin-tab" onclick="switchAdminTab('tickets')">🎧 tickets</button>
+      <button class="admin-tab" onclick="switchAdminTab('testimonials')">💬 depoimentos</button>
       <button class="admin-tab" onclick="switchAdminTab('analytics')">📈 analytics</button>
     </div>
 
@@ -318,6 +319,11 @@
     </div>
 
     <!-- Analytics Tab -->
+    <div id="admin-testimonials" class="admin-table" style="display:none;">
+      <p class="empty-state">Carregando...</p>
+    </div>
+
+    <!-- Analytics Content -->
     <div id="admin-analytics" style="display:none;">
       <div class="analytics-stats">
         <div class="admin-stat"><div class="value" id="analytics-revenue">-</div><div class="label">usuários pagos</div></div>
@@ -452,6 +458,7 @@
 
       document.getElementById("admin-users").style.display = "none";
       document.getElementById("admin-tickets").style.display = "none";
+      document.getElementById("admin-testimonials").style.display = "none";
       document.getElementById("admin-analytics").style.display = "none";
 
       if (tab === "users") {
@@ -460,8 +467,12 @@
       } else if (tab === "tickets") {
         tabs[1].classList.add("active");
         document.getElementById("admin-tickets").style.display = "block";
-      } else if (tab === "analytics") {
+      } else if (tab === "testimonials") {
         tabs[2].classList.add("active");
+        document.getElementById("admin-testimonials").style.display = "block";
+        loadTestimonials();
+      } else if (tab === "analytics") {
+        tabs[3].classList.add("active");
         document.getElementById("admin-analytics").style.display = "block";
         loadAnalytics();
       }
@@ -555,6 +566,53 @@
       } catch (err) {
         console.error("Erro ao carregar analytics:", err);
       }
+    }
+
+    async function loadTestimonials() {
+      try {
+        const res = await fetch("/api/admin/testimonials", { headers: { Authorization: `Bearer ${token}` } });
+        const data = await res.json();
+        const container = document.getElementById("admin-testimonials");
+
+        if (!data.testimonials || data.testimonials.length === 0) {
+          container.innerHTML = '<p class="empty-state">Nenhum depoimento.</p>';
+          return;
+        }
+
+        container.innerHTML = data.testimonials.map(t => `
+          <div class="table-row">
+            <div class="table-info">
+              <div class="table-name">"${escapeHtml(t.message).substring(0, 80)}${t.message.length > 80 ? '...' : ''}"</div>
+              <div class="table-email">por: ${escapeHtml(t.user_name)} (${escapeHtml(t.email)})</div>
+              <div class="table-meta">${"★".repeat(t.rating)}${"☆".repeat(5 - t.rating)} • ${formatDate(t.created_at)}</div>
+            </div>
+            <span class="table-badge ${t.approved ? 'badge-resolvido' : 'badge-aberto'}">${t.approved ? 'aprovado' : 'pendente'}</span>
+            <div class="table-actions">
+              ${!t.approved ? `<button class="resolve" onclick="approveTestimonial(${t.id})">✓ aprovar</button>` : ''}
+              <button onclick="deleteTestimonial(${t.id})">🗑</button>
+            </div>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error("Erro ao carregar depoimentos:", err);
+      }
+    }
+
+    async function approveTestimonial(id) {
+      await fetch(`/api/admin/testimonials/${id}/approve`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      loadTestimonials();
+    }
+
+    async function deleteTestimonial(id) {
+      if (!confirm("Remover este depoimento?")) return;
+      await fetch(`/api/admin/testimonials/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      loadTestimonials();
     }
 
     function logout() {
