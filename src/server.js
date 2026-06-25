@@ -869,6 +869,61 @@ app.get("/api/referral", authMiddleware, async (req, res) => {
   }
 });
 
+// ============================================================
+// === DEPOIMENTOS DA COMUNIDADE ===
+// ============================================================
+
+// Lista depoimentos aprovados (público, sem auth)
+app.get("/api/testimonials", async (req, res) => {
+  const testimonials = await db.prepare(
+    "SELECT id, user_name, message, rating, created_at FROM testimonials WHERE approved = 1 ORDER BY created_at DESC LIMIT 50"
+  ).all();
+  res.json({ testimonials });
+});
+
+// Cria depoimento (precisa de login)
+app.post("/api/testimonials", authMiddleware, async (req, res) => {
+  const { message, rating } = req.body;
+
+  if (!message || message.trim().length < 10) {
+    return res.status(400).json({ error: "Depoimento deve ter pelo menos 10 caracteres." });
+  }
+
+  const userRating = Math.min(5, Math.max(1, parseInt(rating) || 5));
+  const user = await db.prepare("SELECT name FROM users WHERE id = ?").get(req.user.id);
+
+  // Verifica se já tem depoimento
+  const existing = await db.prepare("SELECT id FROM testimonials WHERE user_id = ?").get(req.user.id);
+  if (existing) {
+    return res.status(409).json({ error: "Você já enviou um depoimento. Aguarde aprovação ou edite o existente." });
+  }
+
+  await db.prepare("INSERT INTO testimonials (user_id, user_name, message, rating) VALUES (?, ?, ?, ?)")
+    .run(req.user.id, user.name, message.trim().substring(0, 500), userRating);
+
+  res.status(201).json({ message: "Depoimento enviado! Será publicado após aprovação." });
+});
+
+// Admin: lista todos os depoimentos (inclusive não aprovados)
+app.get("/api/admin/testimonials", authMiddleware, adminMiddleware, async (req, res) => {
+  const testimonials = await db.prepare(
+    "SELECT t.*, u.email FROM testimonials t JOIN users u ON t.user_id = u.id ORDER BY t.created_at DESC"
+  ).all();
+  res.json({ testimonials });
+});
+
+// Admin: aprovar depoimento
+app.put("/api/admin/testimonials/:id/approve", authMiddleware, adminMiddleware, async (req, res) => {
+  await db.prepare("UPDATE testimonials SET approved = 1 WHERE id = ?").run(parseInt(req.params.id));
+  res.json({ message: "Depoimento aprovado!" });
+});
+
+// Admin: remover depoimento
+app.delete("/api/admin/testimonials/:id", authMiddleware, adminMiddleware, async (req, res) => {
+  await db.prepare("DELETE FROM testimonials WHERE id = ?").run(parseInt(req.params.id));
+  res.json({ message: "Depoimento removido." });
+});
+
 // === INICIA SERVIDOR ===
 async function start() {
   await initDatabase();

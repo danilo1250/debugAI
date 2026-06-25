@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>debugAI — Depoimentos da Comunidade</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    .dep-container { max-width: 700px; margin: 0 auto; padding: 3rem 1.5rem; }
+    .dep-header { text-align: center; margin-bottom: 2.5rem; }
+    .dep-header h1 { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); }
+    .dep-header p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.4rem; }
+
+    .dep-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 1.5rem; margin-bottom: 2rem; }
+    .dep-form h3 { color: var(--text-primary); font-size: 0.95rem; margin-bottom: 1rem; }
+    .dep-form textarea { width: 100%; min-height: 80px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0.8rem; color: var(--text-primary); font-family: inherit; font-size: 0.85rem; resize: vertical; }
+    .dep-form textarea:focus { outline: none; border-color: var(--accent); }
+    .dep-form textarea::placeholder { color: var(--text-muted); }
+
+    .dep-rating { display: flex; gap: 0.3rem; margin: 0.8rem 0; }
+    .dep-rating button { background: transparent; border: none; font-size: 1.5rem; cursor: pointer; opacity: 0.3; transition: opacity 0.2s; }
+    .dep-rating button.active { opacity: 1; }
+    .dep-rating button:hover { opacity: 0.8; }
+
+    .dep-submit { background: var(--accent); color: #0a0a0a; border: none; padding: 0.65rem 1.5rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+    .dep-submit:hover { background: var(--accent-light); }
+
+    .dep-login-msg { text-align: center; color: var(--text-secondary); font-size: 0.85rem; padding: 1.5rem; }
+
+    .dep-list { display: flex; flex-direction: column; gap: 1rem; }
+    .dep-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1.5rem; }
+    .dep-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem; }
+    .dep-card-name { font-weight: 600; color: var(--text-primary); font-size: 0.9rem; }
+    .dep-card-date { font-size: 0.72rem; color: var(--text-muted); }
+    .dep-card-stars { color: var(--accent); font-size: 0.9rem; margin-bottom: 0.5rem; }
+    .dep-card-message { color: var(--text-secondary); font-size: 0.86rem; line-height: 1.6; }
+    .dep-empty { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-logo">
+      <a href="/" style="color: var(--accent);"><span class="logo">debugAI</span></a>
+    </div>
+    <nav>
+      <a href="/">home</a>
+      <a href="/app.html">usar IA</a>
+      <a href="/depoimentos.html" style="color: var(--accent);">depoimentos</a>
+    </nav>
+    <div class="header-actions">
+      <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
+    </div>
+  </header>
+
+  <div class="dep-container">
+    <div class="dep-header">
+      <h1>💬 depoimentos da comunidade</h1>
+      <p>Veja o que os devs estão falando sobre o debugAI</p>
+    </div>
+
+    <!-- Formulário (só pra logados) -->
+    <div id="dep-form-section">
+      <div class="dep-form" id="dep-form" style="display:none;">
+        <h3>✍️ deixe seu depoimento</h3>
+        <textarea id="dep-message" placeholder="Conte como o debugAI te ajudou..." maxlength="500"></textarea>
+        <div class="dep-rating" id="dep-rating">
+          <button onclick="setRating(1)">★</button>
+          <button onclick="setRating(2)">★</button>
+          <button onclick="setRating(3)">★</button>
+          <button onclick="setRating(4)">★</button>
+          <button class="active" onclick="setRating(5)">★</button>
+        </div>
+        <button class="dep-submit" onclick="submitTestimonial()">enviar depoimento</button>
+        <p style="color:var(--text-muted);font-size:0.72rem;margin-top:0.5rem;">Seu depoimento será publicado após aprovação.</p>
+      </div>
+      <div class="dep-login-msg" id="dep-login-msg">
+        <p>Faça <a href="/app.html">login</a> para deixar seu depoimento.</p>
+      </div>
+    </div>
+
+    <!-- Lista de depoimentos -->
+    <div class="dep-list" id="dep-list">
+      <div class="dep-empty">Carregando...</div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-logo">debugAI</div>
+    <p>© 2025 debugAI — feito por devs, pra devs</p>
+  </footer>
+
+  <script>
+    let selectedRating = 5;
+
+    // Theme
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = (html.getAttribute("data-theme") || "dark") === "dark" ? "light" : "dark";
+      html.setAttribute("data-theme", next);
+      localStorage.setItem("debugai_theme", next);
+      document.getElementById("theme-toggle").textContent = next === "dark" ? "🌙" : "☀️";
+    }
+    (function() {
+      const saved = localStorage.getItem("debugai_theme") || "dark";
+      document.documentElement.setAttribute("data-theme", saved);
+      const btn = document.getElementById("theme-toggle");
+      if (btn) btn.textContent = saved === "dark" ? "🌙" : "☀️";
+    })();
+
+    // Init
+    window.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("debugai_token");
+      if (token) {
+        document.getElementById("dep-form").style.display = "block";
+        document.getElementById("dep-login-msg").style.display = "none";
+      }
+      loadTestimonials();
+    });
+
+    function setRating(n) {
+      selectedRating = n;
+      const buttons = document.querySelectorAll("#dep-rating button");
+      buttons.forEach((b, i) => b.classList.toggle("active", i < n));
+    }
+
+    async function submitTestimonial() {
+      const message = document.getElementById("dep-message").value.trim();
+      if (!message || message.length < 10) return alert("Escreva pelo menos 10 caracteres.");
+
+      const token = localStorage.getItem("debugai_token");
+      if (!token) return alert("Faça login primeiro.");
+
+      try {
+        const res = await fetch("/api/testimonials", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ message, rating: selectedRating }),
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.error);
+        alert("✅ " + data.message);
+        document.getElementById("dep-message").value = "";
+        loadTestimonials();
+      } catch (err) {
+        alert("Erro ao enviar.");
+      }
+    }
+
+    async function loadTestimonials() {
+      try {
+        const res = await fetch("/api/testimonials");
+        const data = await res.json();
+        const list = document.getElementById("dep-list");
+
+        if (!data.testimonials || data.testimonials.length === 0) {
+          list.innerHTML = '<div class="dep-empty">🌟 Nenhum depoimento ainda. Seja o primeiro a compartilhar sua experiência!</div>';
+          return;
+        }
+
+        list.innerHTML = data.testimonials.map(t => `
+          <div class="dep-card">
+            <div class="dep-card-header">
+              <span class="dep-card-name">${escapeHtml(t.user_name)}</span>
+              <span class="dep-card-date">${formatDate(t.created_at)}</span>
+            </div>
+            <div class="dep-card-stars">${"★".repeat(t.rating)}${"☆".repeat(5 - t.rating)}</div>
+            <p class="dep-card-message">${escapeHtml(t.message)}</p>
+          </div>
+        `).join("");
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    function formatDate(d) {
+      if (!d) return "";
+      return new Date(d + "Z").toLocaleDateString("pt-BR");
+    }
+    function escapeHtml(t) {
+      if (!t) return "";
+      return t.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+  </script>
+</body>
+</html>
