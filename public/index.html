@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>debugAI — debug mais rápido, shippe mais cedo</title>
-  <meta name="description" content="debugAI analisa seu código, identifica a causa raiz do erro e sugere a correção em segundos. IA para devs que odeiam perder tempo.">
-  <meta name="keywords" content="debug, IA, inteligência artificial, código, programação, erros, stack trace, correção automática">
+  <title>debugAI — para quando seu código decide parar de funcionar</title>
+  <meta name="description" content="Cola o erro. Recebe a correção. Sem enrolação.">
+  <meta name="keywords" content="debug, IA, código, erros, stack trace, correção">
   <meta name="author" content="debugAI">
-  <meta property="og:title" content="debugAI — debug mais rápido, shippe mais cedo">
-  <meta property="og:description" content="IA que analisa erros, encontra a causa raiz e sugere correção em segundos.">
+  <meta property="og:title" content="debugAI — para quando seu código decide parar de funcionar">
+  <meta property="og:description" content="Cola o erro. Recebe a correção. Sem enrolação.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://debugai-uhqi.onrender.com">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="debugAI — debug mais rápido, shippe mais cedo">
-  <meta name="twitter:description" content="IA que analisa erros, encontra a causa raiz e sugere correção em segundos.">
+  <meta name="twitter:title" content="debugAI — para quando seu código decide parar de funcionar">
+  <meta name="twitter:description" content="Cola o erro. Recebe a correção. Sem enrolação.">
   <link rel="stylesheet" href="style.css" />
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#d4a574" />
@@ -21,13 +21,12 @@
 </head>
 <body>
 
-  <!-- HEADER -->
   <header>
     <div class="header-logo">
       <span class="logo">debugAI</span>
     </div>
     <nav>
-      <a href="#features">funcionalidades</a>
+      <a href="#como-funciona">como funciona</a>
       <a href="#pricing">preços</a>
       <a href="/depoimentos.html">depoimentos</a>
       <a href="/app.html">usar IA</a>
@@ -39,173 +38,168 @@
     </div>
   </header>
 
-  <!-- HERO -->
+  <!-- HERO — direto ao ponto -->
   <section id="hero">
-    <span class="badge-hero">⚡ IA para devs que odeiam perder tempo</span>
+    <h1>seu código quebrou?<br/>cola aqui que a gente resolve.</h1>
 
-    <h1>debug mais rápido,<br/>shippe mais cedo.</h1>
-
-    <p class="hero-subtitle">O debugAI analisa seu código, identifica a causa raiz do erro e já sugere a correção — tudo em segundos.</p>
+    <p class="hero-subtitle">debugAI encontra o problema, explica o que deu errado e te dá o código corrigido. em segundos. sem enrolação.</p>
 
     <div class="hero-ctas">
-      <a href="/app.html" class="btn-primary">experimentar agora →</a>
-      <a href="#pricing" class="btn-secondary">ver planos</a>
+      <a href="/app.html" class="btn-primary">testar agora — é grátis</a>
     </div>
 
     <div class="terminal">
       <div class="terminal-header">
         <span></span><span></span><span></span>
-        <span class="terminal-title">debugai — bash</span>
+        <span class="terminal-title">debugai</span>
       </div>
       <div class="terminal-body">
-        <p><span class="prompt">❯</span> debugai analyze app.js:142</p>
-        <p class="dim">  scanning dependencies...</p>
-        <p class="dim">  reading stack trace...</p>
+        <p><span class="prompt">❯</span> cola o erro aqui</p>
+        <p class="dim">  TypeError: Cannot read properties of undefined</p>
+        <p class="dim">  at processPayment (app.js:142)</p>
         <br/>
-        <p><span class="warning">⚠</span> TypeError: Cannot read properties of undefined</p>
-        <p class="dim">  at processPayment (app.js:142:18)</p>
-        <br/>
-        <p><span class="info">◆</span> causa raiz encontrada:</p>
-        <p class="dim">  user.subscription undefined — fetch retornou 401</p>
-        <br/>
-        <p><span class="success">✓</span> correção: if (!user?.subscription) return handleAuthError()</p>
+        <p><span class="success">✓</span> <strong>causa:</strong> user.subscription é undefined porque o fetch retornou 401</p>
+        <p><span class="success">✓</span> <strong>fix:</strong> if (!user?.subscription) return handleAuthError()</p>
         <p><span class="prompt">❯</span> <span class="cursor">_</span></p>
       </div>
     </div>
   </section>
 
-  <!-- FEATURES -->
-  <section id="features">
-    <span class="section-label">funcionalidades</span>
-    <h2>tudo que você precisa<br/>para debugar sem dor</h2>
+  <!-- COMO FUNCIONA — sem cards genéricos -->
+  <section id="como-funciona" style="padding: 5rem 2rem; max-width: 700px; margin: 0 auto;">
+    <h2 style="font-size: 1.6rem; color: var(--text-primary); font-weight: 600; margin-bottom: 2.5rem; text-align: center;">como funciona na prática</h2>
 
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🎯</div>
-        <h3>causa raiz em segundos</h3>
-        <p>A IA analisa o stack trace completo e aponta exatamente onde o problema começa.</p>
+    <div style="display: flex; flex-direction: column; gap: 2rem;">
+
+      <div style="display: flex; gap: 1.2rem; align-items: flex-start;">
+        <span style="font-size: 1.8rem; line-height: 1;">1</span>
+        <div>
+          <p style="color: var(--text-primary); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem;">cola o erro ou o código com problema</p>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">stack trace, mensagem de erro, trecho de código — qualquer coisa que você jogaria no google.</p>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">✨</div>
-        <h3>correção pronta pra colar</h3>
-        <p>Não é só diagnóstico. Você recebe o trecho corrigido com explicação do porquê funcionou.</p>
+      <div style="display: flex; gap: 1.2rem; align-items: flex-start;">
+        <span style="font-size: 1.8rem; line-height: 1;">2</span>
+        <div>
+          <p style="color: var(--text-primary); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem;">a IA analisa e encontra a causa raiz</p>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">não é só "tenta isso". ela te diz exatamente porque quebrou e o que tava errado.</p>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">📚</div>
-        <h3>histórico de bugs</h3>
-        <p>Aprenda com os erros passados. Guarda registro e alerta quando padrões similares aparecem.</p>
+      <div style="display: flex; gap: 1.2rem; align-items: flex-start;">
+        <span style="font-size: 1.8rem; line-height: 1;">3</span>
+        <div>
+          <p style="color: var(--text-primary); font-weight: 600; font-size: 0.95rem; margin-bottom: 0.3rem;">recebe o código corrigido pronto pra colar</p>
+          <p style="color: var(--text-secondary); font-size: 0.85rem;">copia, cola no seu editor, e segue com a vida. sem perder 40 minutos no stackoverflow.</p>
+        </div>
       </div>
 
-      <div class="feature-card">
-        <div class="feature-icon">🔑</div>
-        <h3>API própria</h3>
-        <p>Integre o debugAI na sua pipeline com uma chave de API. Automatize análises direto no código.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">👥</div>
-        <h3>dashboard do time</h3>
-        <p>Gerencie membros, veja relatórios de uso e acompanhe os erros mais comuns do time.</p>
-      </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🔒</div>
-        <h3>privacidade total</h3>
-        <p>Seu código não é usado pra treinar nenhum modelo. Zero retenção de dados.</p>
-      </div>
     </div>
   </section>
 
-  <!-- EARLY ACCESS / DEMO -->
-  <section id="early-access" style="padding: 5rem 2rem; max-width: 800px; margin: 0 auto; text-align: center;">
-    <span class="section-label">lançamento</span>
-    <h2 style="font-size: 2rem; margin: 1rem 0 1rem; color: var(--text-primary); font-weight: 600;">🚀 seja um dos primeiros</h2>
-    <p style="color: var(--text-secondary); font-size: 1rem; max-width: 500px; margin: 0 auto 2.5rem; line-height: 1.7;">O debugAI acabou de ser lançado. Teste agora e faça parte da nossa comunidade de devs que debugam mais rápido com IA.</p>
-
-    <!-- Vídeo demo -->
-    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; margin-bottom: 2.5rem;">
+  <!-- VÍDEO -->
+  <section style="padding: 0 2rem 4rem; max-width: 750px; margin: 0 auto; text-align: center;">
+    <p style="color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1rem;">veja funcionando</p>
+    <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden;">
       <iframe width="100%" height="400" src="https://www.youtube-nocookie.com/embed/ATjtYxctyaY?rel=0" title="debugAI Demo" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen style="display:block;"></iframe>
     </div>
-
-    <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap;">
-      <a href="/app.html" class="btn-primary" style="font-size: 0.95rem; padding: 0.8rem 2rem;">experimentar grátis →</a>
-      <a href="#pricing" class="btn-secondary" style="font-size: 0.95rem; padding: 0.8rem 2rem;">ver planos</a>
-    </div>
   </section>
 
-  <!-- PRICING -->
-  <section id="pricing">
-    <span class="section-label">planos</span>
-    <h2>simples e transparente</h2>
+  <!-- O QUE SUPORTA — lista simples, não grid -->
+  <section style="padding: 3rem 2rem; max-width: 700px; margin: 0 auto;">
+    <h2 style="font-size: 1.3rem; color: var(--text-primary); font-weight: 600; margin-bottom: 1.5rem;">funciona com o que você usa</h2>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 2;">
+      JavaScript · TypeScript · Python · Java · C# · PHP · Ruby · Go · Rust · Swift · Kotlin · Flutter · React · Next.js · Node.js · SQL — e se não tiver na lista, manda assim mesmo que a IA detecta.
+    </p>
+  </section>
+
+  <!-- POR QUE DIFERENTE — texto honesto -->
+  <section style="padding: 4rem 2rem; max-width: 700px; margin: 0 auto;">
+    <h2 style="font-size: 1.3rem; color: var(--text-primary); font-weight: 600; margin-bottom: 1.5rem;">por que não só usar o chatgpt?</h2>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; margin-bottom: 1rem;">
+      pode usar. mas aqui o prompt já tá otimizado pra debug, a resposta vem estruturada (causa → fix → cuidados), salva tudo no seu histórico, e você não precisa explicar o contexto toda vez. é tipo um chatgpt que já sabe que você é dev e quer resolver rápido.
+    </p>
+    <p style="color: var(--text-muted); font-size: 0.82rem;">
+      ah, e seus dados não treinam nenhum modelo. zero retenção.
+    </p>
+  </section>
+
+  <!-- EARLY ACCESS -->
+  <section style="padding: 4rem 2rem; max-width: 600px; margin: 0 auto; text-align: center;">
+    <p style="color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem;">lançamento</p>
+    <h2 style="font-size: 1.5rem; color: var(--text-primary); margin-bottom: 0.8rem;">o debugAI acabou de sair do forno</h2>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 2rem;">começa grátis com 10 análises por mês. se curtir, assina. se não curtir, de boa — pelo menos resolveu uns bugs.</p>
+    <a href="/app.html" class="btn-primary" style="font-size: 0.95rem; padding: 0.85rem 2.5rem;">experimentar agora</a>
+  </section>
+
+  <!-- PREÇOS — mais compacto -->
+  <section id="pricing" style="padding: 5rem 2rem; max-width: 900px; margin: 0 auto;">
+    <h2 style="font-size: 1.4rem; color: var(--text-primary); font-weight: 600; margin-bottom: 0.5rem; text-align: center;">preços</h2>
+    <p style="color: var(--text-secondary); font-size: 0.85rem; text-align: center; margin-bottom: 2.5rem;">sem surpresa, sem pegadinha</p>
 
     <div class="pricing-grid">
       <div class="pricing-card">
         <div class="pricing-header">
           <h3>Grátis</h3>
           <p class="price">R$0<span>/mês</span></p>
-          <p class="pricing-desc">Para experimentar e projetos pessoais.</p>
+          <p class="pricing-desc">pra testar e projetos pessoais</p>
         </div>
         <ul>
           <li class="included">✓ 10 análises por mês</li>
-          <li class="included">✓ Análise de erros</li>
-          <li class="excluded">✗ Revisão de código</li>
-          <li class="excluded">✗ Histórico ilimitado</li>
+          <li class="included">✓ análise de erros</li>
+          <li class="excluded">✗ revisão de código</li>
         </ul>
         <a href="/app.html" class="btn-plan">começar grátis</a>
       </div>
 
       <div class="pricing-card popular">
-        <span class="badge">⚡ mais popular</span>
+        <span class="badge">popular</span>
         <div class="pricing-header">
           <h3>Pro</h3>
           <p class="price">R$19,99<span>/mês</span></p>
-          <p class="pricing-desc">Para devs que querem o máximo de produtividade.</p>
+          <p class="pricing-desc">pra quem usa todo dia</p>
         </div>
         <ul>
-          <li class="included">✓ Análises ilimitadas</li>
-          <li class="included">✓ Análise de erros</li>
-          <li class="included">✓ Revisão de código</li>
-          <li class="included">✓ Histórico ilimitado</li>
+          <li class="included">✓ análises ilimitadas</li>
+          <li class="included">✓ revisão de código</li>
+          <li class="included">✓ modelo detalhado</li>
         </ul>
-        <a href="#" onclick="subscribePlan('pro')" class="btn-plan">assinar Pro →</a>
+        <a href="#" onclick="subscribePlan('pro')" class="btn-plan">assinar Pro</a>
       </div>
 
       <div class="pricing-card">
         <div class="pricing-header">
           <h3>Team</h3>
           <p class="price">R$29,99<span>/mês</span></p>
-          <p class="pricing-desc">Para times inteiros. Até 10 devs inclusos.</p>
+          <p class="pricing-desc">pra times de até 10</p>
         </div>
         <ul>
-          <li class="included">✓ Tudo do Pro</li>
-          <li class="included">✓ Até 10 membros</li>
-          <li class="included">✓ Dashboard do time</li>
-          <li class="included">✓ Relatórios de bugs</li>
-          <li class="included">✓ Suporte prioritário</li>
+          <li class="included">✓ tudo do Pro</li>
           <li class="included">✓ API própria</li>
+          <li class="included">✓ dashboard + relatórios</li>
         </ul>
-        <a href="#" onclick="subscribePlan('team')" class="btn-plan">assinar Team →</a>
+        <a href="#" onclick="subscribePlan('team')" class="btn-plan">assinar Team</a>
       </div>
     </div>
   </section>
 
-  <!-- STATS -->
+  <!-- STATS — simples -->
   <section id="stats">
-    <div class="stat"><span>10s</span><p>tempo de resposta</p></div>
+    <div class="stat"><span>10s</span><p>resposta</p></div>
     <div class="stat"><span>16+</span><p>linguagens</p></div>
     <div class="stat"><span>24/7</span><p>disponível</p></div>
-    <div class="stat"><span>0</span><p>dados retidos</p></div>
   </section>
 
   <!-- FOOTER -->
   <footer>
     <div class="footer-logo">debugAI</div>
-    <p>© 2025 debugAI — feito por devs, pra devs</p>
-    <a href="/faq.html" style="color:var(--text-muted);font-size:0.82rem;margin-top:0.5rem;display:inline-block;">perguntas frequentes</a>
-    <span style="color:var(--text-muted);font-size:0.82rem;"> · </span>
-    <a href="/depoimentos.html" style="color:var(--text-muted);font-size:0.82rem;">depoimentos</a>
+    <p>feito por devs, pra devs — 2025</p>
+    <div style="margin-top: 0.5rem;">
+      <a href="/faq.html" style="color:var(--text-muted);font-size:0.78rem;">FAQ</a>
+      <span style="color:var(--text-muted);font-size:0.78rem;"> · </span>
+      <a href="/depoimentos.html" style="color:var(--text-muted);font-size:0.78rem;">depoimentos</a>
+    </div>
   </footer>
 
   <!-- LOGIN MODAL -->
@@ -214,8 +208,8 @@
     <div class="modal-content">
       <button class="close-modal" onclick="closeModal()">✕</button>
       <div class="modal-header">
-        <h2>bem-vindo ao debugAI</h2>
-        <p>entre ou crie sua conta para começar</p>
+        <h2>entrar no debugAI</h2>
+        <p>cria conta ou faz login</p>
       </div>
 
       <div class="modal-tabs">
@@ -241,8 +235,8 @@
         </div>
 
         <button type="submit" class="btn-submit">entrar</button>
-        <p class="modal-footer-text">Não tem conta? <a href="#" onclick="switchModalTab('register')">criar grátis</a></p>
-        <p class="modal-footer-text" id="forgot-password-link"><a href="#" onclick="alert('Entre em contato com o administrador para resetar sua senha.\n\nO admin pode resetar sua senha pelo painel administrativo.')">esqueci minha senha</a></p>
+        <p class="modal-footer-text">sem conta? <a href="#" onclick="switchModalTab('register')">criar grátis</a></p>
+        <p class="modal-footer-text"><a href="#" onclick="alert('Fale com o admin pra resetar sua senha.')">esqueci a senha</a></p>
       </form>
     </div>
   </div>
