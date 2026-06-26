@@ -228,9 +228,10 @@
         </div>
       </div>
 
-      <!-- Stats Pessoais -->
+      <!-- Stats Pessoais (toggle) -->
       <div id="personal-stats" class="personal-stats" style="display:none;">
-        <div class="personal-stats-grid">
+        <button onclick="document.getElementById('personal-stats-grid').style.display = document.getElementById('personal-stats-grid').style.display === 'none' ? 'grid' : 'none'" style="background:transparent;border:none;color:var(--text-secondary);font-size:0.8rem;cursor:pointer;font-family:inherit;margin-bottom:0.8rem;">📊 ver minhas estatísticas ▼</button>
+        <div class="personal-stats-grid" id="personal-stats-grid" style="display:none;">
           <div class="personal-stat-card">
             <div class="personal-stat-icon">🐛</div>
             <div class="personal-stat-value" id="stat-bugs">0</div>

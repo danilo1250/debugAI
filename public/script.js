@@ -171,12 +171,20 @@ async function showLoggedInState() {
 
   headerActions.innerHTML = `
     <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle" title="Alternar tema">🌙</button>
-    <span style="color: var(--text-secondary); font-size: 0.84rem;">olá, <strong style="color: var(--accent);">${currentUser.name}</strong></span>
-    <a href="/app.html" class="btn-primary-sm" style="font-size:0.8rem;padding:0.4rem 0.9rem;">usar IA</a>
-    <a href="/conta.html" style="color:var(--text-secondary);font-size:0.8rem;">⚙️ conta</a>
-    ${dashboardLink}
-    ${adminLink}
-    <button onclick="logout()" style="background:transparent;border:1px solid var(--border-light);color:var(--text-secondary);padding:0.45rem 1rem;border-radius:8px;font-size:0.8rem;cursor:pointer;font-family:inherit;">sair</button>
+    <div class="user-menu" id="user-menu">
+      <button class="user-menu-btn" onclick="toggleUserMenu()">
+        <span>${currentUser.name}</span>
+        <span style="font-size:0.6rem;">▼</span>
+      </button>
+      <div class="user-menu-dropdown" id="user-dropdown" style="display:none;">
+        <a href="/app.html">🤖 usar IA</a>
+        <a href="/conta.html">⚙️ minha conta</a>
+        ${dashboardLink ? '<a href="/dashboard.html">📊 dashboard</a>' : ''}
+        ${adminLink ? '<a href="/admin.html">🔐 admin</a>' : ''}
+        <hr/>
+        <a href="#" onclick="logout()">🚪 sair</a>
+      </div>
+    </div>
   `;
   updateThemeIcon();
 
@@ -874,6 +882,22 @@ function updateModelLock() {
     lockEl.style.display = "inline";
   }
 }
+
+// === Menu do Usuário ===
+function toggleUserMenu() {
+  const dropdown = document.getElementById("user-dropdown");
+  if (!dropdown) return;
+  dropdown.style.display = dropdown.style.display === "none" ? "block" : "none";
+}
+
+// Fecha menu ao clicar fora
+document.addEventListener("click", (e) => {
+  const menu = document.getElementById("user-menu");
+  const dropdown = document.getElementById("user-dropdown");
+  if (menu && dropdown && !menu.contains(e.target)) {
+    dropdown.style.display = "none";
+  }
+});
 
 // === Compartilhar Análise ===
 async function shareHistoryItem(id) {
