@@ -153,6 +153,16 @@ async function showLoggedInState() {
   // Atualiza barra de progresso
   updateProgressBar();
 
+  // Aviso de limite (Feature 4): mostra toast se >= 80% no plano free
+  if (planInfo && planInfo.plan === "free" && planInfo.analysisLimit !== "ilimitado") {
+    const used = planInfo.analysisUsed || 0;
+    const limit = parseInt(planInfo.analysisLimit) || 10;
+    const percent = Math.round((used / limit) * 100);
+    if (percent >= 80) {
+      showLimitWarning(percent);
+    }
+  }
+
   // Atualiza header — mostra nome do usuário + link dashboard se Team
   const headerActions = document.getElementById("header-actions");
   const dashboardLink = planInfo && planInfo.plan === "team"
@@ -609,6 +619,10 @@ async function loadHistory() {
     }
 
     section.style.display = "block";
+
+    // Cache dos items para Twitter/PDF (evita problemas de escaping em inline handlers)
+    window._historyItems = data.history;
+
     list.innerHTML = data.history.map((item, index) => `
       <div class="history-item">
         <div class="history-item-header">
@@ -619,6 +633,8 @@ async function loadHistory() {
         <div class="history-item-actions">
           <button class="btn-favorite ${item.is_favorite ? 'active' : ''}" onclick="toggleFavorite(${item.id}, this)">⭐</button>
           <button onclick="shareHistoryItem(${item.id})">🔗 compartilhar</button>
+          <button onclick="shareOnTwitter(window._historyItems[${index}].input_error || '')">🐦 twitter</button>
+          <button onclick="exportToPDF(window._historyItems[${index}].input_error || '', window._historyItems[${index}].response || '')">📄 PDF</button>
           <button onclick="toggleResponse(${index})">👁 ver resposta</button>
           <button onclick="copyHistoryResponse(${index})">📋 copiar</button>
           <button onclick="deleteHistoryItem(${item.id})">🗑 remover</button>
@@ -1050,4 +1066,89 @@ function resetFileUpload() {
   if (input) input.value = "";
   const btn = document.getElementById("btn-upload-analyze");
   if (btn) btn.style.display = "none";
+}
+
+// === Compartilhar no Twitter/X ===
+function shareOnTwitter(text) {
+  const shortText = text.substring(0, 80);
+  const tweetText = `Acabei de resolver um bug com o debugAI! ${encodeURIComponent(shortText)}`;
+  const url = encodeURIComponent("https://debugai-uhqi.onrender.com");
+  window.open(`https://twitter.com/intent/tweet?text=${tweetText}&url=${url}`, "_blank");
+}
+
+// === Exportar análise como PDF ===
+function exportToPDF(inputError, response) {
+  const win = window.open("", "_blank");
+  win.document.write(`
+    <html><head><title>debugAI — análise</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 800px; margin: 2rem auto; color: #111; }
+      h1 { font-size: 1.2rem; color: #d4a574; }
+      h2 { font-size: 1rem; border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+      pre, code { background: #f5f5f5; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+      pre { padding: 1rem; white-space: pre-wrap; }
+      .error-box { background: #f9f9f9; border-left: 3px solid #d4a574; padding: 1rem; margin-bottom: 1.5rem; font-family: monospace; font-size: 0.85rem; }
+      .footer { margin-top: 2rem; font-size: 0.75rem; color: #888; }
+    </style></head>
+    <body>
+    <h1>debugAI — análise de código</h1>
+    <div class="error-box">${inputError.replace(/</g, "&lt;")}</div>
+    <div>${renderMarkdownForPDF(response)}</div>
+    <div class="footer">Gerado por debugAI — debugai-uhqi.onrender.com</div>
+    </body></html>
+  `);
+  win.document.close();
+  win.print();
+}
+
+function renderMarkdownForPDF(text) {
+  if (!text) return "";
+  return text
+    .replace(/```[\w]*\n([\s\S]*?)```/g, "<pre>$1</pre>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/^- (.+)$/gm, "<li>$1</li>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/\n/g, "<br/>");
+}
+
+// === Notificação de limite (Feature 4) ===
+function showLimitWarning(percent) {
+  // Só mostra uma vez por sessão
+  if (sessionStorage.getItem("debugai_limit_warned")) return;
+  sessionStorage.setItem("debugai_limit_warned", "1");
+
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.id = "limit-toast";
+  toast.innerHTML = `
+    <div class="toast-title">⚠️ limite se aproximando</div>
+    <div class="toast-msg">você usou ${percent}% das suas análises este mês. Considere fazer upgrade.</div>
+    <div class="toast-actions">
+      <a href="#pricing" onclick="document.getElementById('limit-toast').remove()">ver planos</a>
+      <button onclick="document.getElementById('limit-toast').remove()">dispensar</button>
+    </div>
+  `;
+  document.body.appendChild(toast);
+
+  // Remove automaticamente após 8 segundos
+  setTimeout(() => {
+    const el = document.getElementById("limit-toast");
+    if (el) el.remove();
+  }, 8000);
+}
+
+function showToast(message) {
+  const toast = document.createElement("div");
+  toast.className = "toast";
+  toast.innerHTML = `
+    <div class="toast-msg">${message}</div>
+    <div class="toast-actions">
+      <button onclick="this.closest('.toast').remove()">fechar</button>
+    </div>
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
 }

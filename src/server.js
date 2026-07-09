@@ -871,6 +871,25 @@ app.get("/api/referral", authMiddleware, async (req, res) => {
 });
 
 // ============================================================
+// === STATS PÚBLICAS ===
+// ============================================================
+
+// Rota pública (sem auth) para exibir contadores na landing page
+app.get("/api/stats/public", async (req, res) => {
+  try {
+    const usersResult = await db.prepare("SELECT COUNT(*) as count FROM users").get();
+    const analysesResult = await db.prepare("SELECT COUNT(*) as count FROM history").get();
+    res.json({
+      totalUsers: usersResult ? usersResult.count : 0,
+      totalAnalyses: analysesResult ? analysesResult.count : 0,
+    });
+  } catch (err) {
+    console.error("Erro ao buscar stats públicas:", err);
+    res.status(500).json({ error: "Erro ao buscar estatísticas." });
+  }
+});
+
+// ============================================================
 // === DEPOIMENTOS DA COMUNIDADE ===
 // ============================================================
 

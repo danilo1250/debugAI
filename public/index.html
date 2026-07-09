@@ -187,10 +187,11 @@
     </div>
   </section>
 
-  <!-- STATS — simples -->
+  <!-- STATS — dinâmico -->
   <section id="stats">
-    <div class="stat"><span>10s</span><p>resposta</p></div>
-    <div class="stat"><span>16+</span><p>linguagens</p></div>
+    <div class="stat"><span id="stat-total-users">—</span><p>devs</p></div>
+    <div class="stat"><span id="stat-total-analyses">—</span><p>análises feitas</p></div>
+    <div class="stat"><span>~10s</span><p>resposta</p></div>
     <div class="stat"><span>24/7</span><p>disponível</p></div>
   </section>
 
@@ -245,5 +246,21 @@
   </div>
 
   <script src="script.js"></script>
+  <script>
+    // Contador dinâmico de usuários e análises na landing
+    document.addEventListener("DOMContentLoaded", async () => {
+      try {
+        const res = await fetch("/api/stats/public");
+        if (!res.ok) return;
+        const data = await res.json();
+        const usersEl = document.getElementById("stat-total-users");
+        const analysesEl = document.getElementById("stat-total-analyses");
+        if (usersEl && data.totalUsers != null) usersEl.textContent = data.totalUsers.toLocaleString("pt-BR");
+        if (analysesEl && data.totalAnalyses != null) analysesEl.textContent = data.totalAnalyses.toLocaleString("pt-BR");
+      } catch (e) {
+        // Falha silenciosa — mantém os traços
+      }
+    });
+  </script>
 </body>
 </html>
